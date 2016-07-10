@@ -17,41 +17,129 @@
 #### DATASET DOCUMENTATION
 
 
-#' @title Data: query time series
+#' @title Data: patterns time series
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' 
-#' @description This dataset has a list of queries form the crops: Soybean,
+#' @description This dataset has a list of patterns with the phenological cycle of: Soybean,
 #' Cotton, and Maize. These time series are based on the MODIS product 
-#' MOD13Q1 250 m 16 days. The queries were extracted from more than 100 
-#' samples of each class using Generalized Additive Models (GAM), see 
-#' package \link[mgcv]{gam}.
+#' MOD13Q1 250 m 16 days [1]. The patterns were build from ground truth samples of each 
+#' crop using Generalized Additive Models (GAM), see \link[dtwSat]{createPatterns}.
+#' 
 #' @docType data
-#' @format A named \code{list} of 3 \link[zoo]{zoo} objects, "Soybean", "Cotton", 
-#' and "Maize", whose indices are Dates in the format "yyyy-mm-dd".
-#' Each node has 6 attributes: "ndvi", "evi", "red", "nir", "blue", 
-#' and "mir".
-#' @seealso \link[dtwSat]{template}
-#' @seealso MOD13Q1 documentation: See \url{https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1}
-"query.list"
+#' @format A named \code{list} of 3 \link[zoo]{zoo} objects, ''Soybean'', ''Cotton'', 
+#' and ''Maize'', whose indices are \code{\link[base]{Dates}} in the format ''yyyy-mm-dd''.
+#' Each node has 6 attributes: ''ndvi'', ''evi'', ''red'', ''nir'', ''blue'', 
+#' and ''mir''.
+#' 
+#' @seealso 
+#' \link[dtwSat]{example_ts},
+#' \link[dtwSat]{example_ts.list}, and 
+#' \link[dtwSat]{createPatterns}.
+#'  
+#' @seealso MOD13Q1 documentation: See 
+#' \url{https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1}.
+#' 
+#' @references 
+#' [1] Friedl MA, Sulla-Menashe D, Tan B, Schneider A, Ramankutty N, Sibley A, Huang X. (2010).
+#' MODIS Collection 5 global land cover: Algorithm refinements and characterization of new
+#' datasets. Remote Sensing of Environment, 114(1), 168 182.
+#' 
+"patterns.list"
 
 
-#' @title Data: template time series
+#' @title Data: An example of satellite time series
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' 
-#' @description This dataset has a template time series based on the 
-#' MODIS product MOD13Q1 250 m 16 days. It is an irregular time series 
-#' using the real date of each pixel from "2009-08-05" "2013-07-31".
+#' @description This dataset has a time series based on the 
+#' MODIS product MOD13Q1 250 m 16 days [1]. It is an irregularly sampled time series 
+#' using the real date of each pixel from ''2009-08-05'' to ''2013-07-31''.
+#' 
 #' @docType data
-#' @format A \link[zoo]{zoo} object, whose indices are dates in the 
-#' format "yyyy-mm-dd". Each node has 6 attributes: "ndvi", 
-#' "evi", "red", "nir", "blue", and "mir".
-#' @seealso \link[dtwSat]{query.list}
-#' @seealso Package \pkg{rwtss} provides a client for Web Time 
+#' @format A \link[zoo]{zoo} object, whose indices are \code{\link[base]{Dates}} 
+#' in the format ''yyyy-mm-dd''. Each node has 6 attributes: ''ndvi'', 
+#' ''evi'', ''red'', ''nir'', ''blue'', and ''mir''.
+#' 
+#' @seealso 
+#' \link[dtwSat]{example_ts.list},
+#' \link[dtwSat]{patterns.list}. 
+#' 
+#' @seealso The package \pkg{rwtss} provides a client for Web Time 
 #' Series Service \url{https://github.com/albhasan/rwtss.git}.
-#' @seealso MOD13Q1 documentation: \url{https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1}
-"template"
+#' 
+#' @seealso MOD13Q1 documentation: 
+#' \url{https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1}.
+#' 
+#' @references 
+#' [1] Friedl MA, Sulla-Menashe D, Tan B, Schneider A, Ramankutty N, Sibley A, Huang X. (2010).
+#' MODIS Collection 5 global land cover: Algorithm refinements and characterization of new
+#' datasets. Remote Sensing of Environment, 114(1), 168 182.
+#' 
+"example_ts"
+
+#' @title Data: Labels of the satellite time series in example_ts 
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' 
+#' @description This labels are based on field work.
+#' 
+#' @docType data
+#' @format An object of class \link[base]{data.frame}, whose attributas are: 
+#' the label of the crop class ''label'', the start of the crop period ''from'',
+#' and the end of the crop period ''to''. The dates are in the format ''yyyy-mm-dd''.
+#' 
+#' @seealso 
+#' \link[dtwSat]{example_ts}. 
+#' 
+"example_ts_labels"
+
+#' @title Data: A list of satellite time series
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' 
+#' @description This dataset has a list of time series based on the 
+#' MODIS product MOD13Q1 250 m 16 days [1]. It is an irregularly sampled time series 
+#' using the real date of each pixel from ''2009-08-05'' to ''2013-07-31''.
+#' 
+#' @docType data
+#' @format A \link[zoo]{zoo} object, whose indices are \code{\link[base]{Dates}} 
+#' in the format ''yyyy-mm-dd''. Each node has 6 attributes: ''ndvi'', 
+#' ''evi'', ''red'', ''nir'', ''blue'', and ''mir''.
+#' 
+#' @seealso 
+#' \link[dtwSat]{example_ts}, and 
+#' \link[dtwSat]{patterns.list}. 
+#' 
+#' @seealso The package \pkg{rwtss} provides a client for Web Time 
+#' Series Service \url{https://github.com/albhasan/rwtss.git}.
+#' 
+#' @seealso MOD13Q1 documentation: 
+#' \url{https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1}.
+#' 
+#' @references 
+#' [1] Friedl MA, Sulla-Menashe D, Tan B, Schneider A, Ramankutty N, Sibley A, Huang X. (2010).
+#' MODIS Collection 5 global land cover: Algorithm refinements and characterization of new
+#' datasets. Remote Sensing of Environment, 114(1), 168 182.
+#' 
+"example_ts.list"
 
 
-
-
+#' @title Data: patterns time series
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' 
+#' @description This dataset has a list of patterns with the phenological cycle of: Water,
+#' Cotton-Fallow, Forest, Low vegetation, Pasture, Soybean-Cotton, Soybean-Maize, Soybean-Millet, 
+#' Soybean-Sunflower, and Wetland. These time series are based on the MODIS product 
+#' MOD13Q1 250 m 16 days [1]. The patterns were build from ground truth samples of each 
+#' crop using Generalized Additive Models (GAM), see \link[dtwSat]{createPatterns}.
+#' 
+#' @docType data
+#' @format A \link[dtwSat]{twdtwTimeSeries} object.
+#' 
+#' @seealso MOD13Q1 documentation: See 
+#' \url{https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1}.
+#' 
+#' @references 
+#' [1] Friedl MA, Sulla-Menashe D, Tan B, Schneider A, Ramankutty N, Sibley A, Huang X. (2010).
+#' MODIS Collection 5 global land cover: Algorithm refinements and characterization of new
+#' datasets. Remote Sensing of Environment, 114(1), 168 182.
+#' 
+"yearly_patterns_mt"
 
