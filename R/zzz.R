@@ -18,7 +18,6 @@
             utils::packageDescription("dtwSat")$Version) )
 }
 
-
 #' @import zoo 
 #' @import raster
 #' @import ggplot2
@@ -29,13 +28,14 @@
 #' @importFrom scales pretty_breaks date_format percent
 #' @importFrom grDevices terrain.colors gray.colors
 #' @importFrom plyr alply
-#' @importFrom parallel mclapply
 #' @importFrom sp Polygon Polygons SpatialPoints SpatialPolygons SpatialPointsDataFrame over CRS spTransform coordinates bbox 
 #' @importFrom mgcv gam predict.gam 
 #' @importFrom RColorBrewer brewer.pal 
-#' @importFrom stats xtabs ave window na.omit
+#' @importFrom stats xtabs ave window na.omit sd qnorm 
 #' @importFrom lubridate month month<- day day<- year year<-
 #' @importFrom caret createDataPartition 
+#' @importFrom xtable xtable print.xtable
+#' @useDynLib dtwSat, .registration = TRUE
 #' 
 NULL
 

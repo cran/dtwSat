@@ -2,16 +2,16 @@
 % Please edit documentation in R/getTimeSeries.R
 \docType{methods}
 \name{getTimeSeries}
+\alias{getTimeSeries}
 \alias{getPatterns}
+\alias{getTimeSeries,twdtwTimeSeries-method}
+\alias{getTimeSeries-twdtwTimeSeries}
+\alias{getTimeSeries,twdtwMatches-method}
+\alias{getTimeSeries-twdtwMatches}
 \alias{getPatterns,twdtwMatches-method}
 \alias{getPatterns-twdtwMatches}
-\alias{getTimeSeries}
-\alias{getTimeSeries,twdtwMatches-method}
 \alias{getTimeSeries,twdtwRaster-method}
-\alias{getTimeSeries,twdtwTimeSeries-method}
-\alias{getTimeSeries-twdtwMatches}
 \alias{getTimeSeries-twdtwRaster}
-\alias{getTimeSeries-twdtwTimeSeries}
 \title{Get time series from twdtw* objects}
 \usage{
 \S4method{getTimeSeries}{twdtwTimeSeries}(object, labels = NULL)
@@ -28,22 +28,21 @@
 
 \item{labels}{character vector with time series labels. For signature 
 \code{\link[dtwSat]{twdtwRaster}} this argument can be used to set the 
-labels for each \code{sample}, or it can be combined with \code{id.labels} 
+labels for each sample in \code{y}, or it can be combined with \code{id.labels} 
 to select samples with a specific label.}
 
 \item{y}{a \code{\link[base]{data.frame}} whose attributes are: longitude, 
 latitude, the start ''from'' and the end ''to'' of the time interval 
 for each sample. This can also be a \code{\link[sp]{SpatialPointsDataFrame}} 
 whose attributes are the start ''from'' and the end ''to'' of the time interval.
-If missing ''from'' and/or ''to'', their are set to the time range of the object
-\code{object}. As additional attribute of \code{samples} can be used as labels 
-for each sample. See \code{id.labels}.}
+If missing ''from'' and/or ''to'', they are set to the time range of the 
+\code{object}.}
 
 \item{proj4string}{projection string, see \code{\link[sp]{CRS-class}}. Used 
-if \code{samples} is a \code{\link[base]{data.frame}}.}
+if \code{y} is a \code{\link[base]{data.frame}}.}
 
-\item{id.labels}{a numeric or character with an attribute of \code{samples} to 
-be used as labels of the samples. Optional.}
+\item{id.labels}{a numeric or character with an column name from \code{y} to 
+be used as samples labels. Optional.}
 }
 \value{
 An object of class \code{\link[dtwSat]{twdtwTimeSeries}}.
@@ -55,11 +54,11 @@ Get time series from objects of class twdtw*.
 }
 \examples{
 # Getting time series from objects of class twdtwTimeSeries
-ts = twdtwTimeSeries(example_ts.list)
+ts = twdtwTimeSeries(MOD13Q1.ts.list)
 getTimeSeries(ts, 2)
 # Getting time series from objects of class twdtwTimeSeries
-ts = twdtwTimeSeries(example_ts.list)
-patt = twdtwTimeSeries(patterns.list)
+ts = twdtwTimeSeries(MOD13Q1.ts.list)
+patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 mat = twdtwApply(x=ts, y=patt)
 getTimeSeries(mat, 2)
 ## This example creates a twdtwRaster object and extract time series from it. 
@@ -81,12 +80,11 @@ ts = getTimeSeries(rts, y = ts_location, proj4string = prj_string)
 autoplot(ts[[1]], facets = NULL) + xlab("Time") + ylab("Value")
 
 }
-\author{
-Victor Maus, \email{vwmaus1@gmail.com}
-}
 \seealso{
 \code{\link[dtwSat]{twdtwRaster-class}}, 
 \code{\link[dtwSat]{twdtwTimeSeries-class}}, and 
 \code{\link[dtwSat]{twdtwMatches-class}}
 }
-
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+}

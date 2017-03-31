@@ -28,20 +28,19 @@ setGeneric("getPatterns", function(object, ...) standardGeneric("getPatterns"))
 #' latitude, the start ''from'' and the end ''to'' of the time interval 
 #' for each sample. This can also be a \code{\link[sp]{SpatialPointsDataFrame}} 
 #' whose attributes are the start ''from'' and the end ''to'' of the time interval.
-#' If missing ''from'' and/or ''to'', their are set to the time range of the object
-#' \code{object}. As additional attribute of \code{samples} can be used as labels 
-#' for each sample. See \code{id.labels}. 
+#' If missing ''from'' and/or ''to'', they are set to the time range of the 
+#' \code{object}. 
 #' 
-#' @param id.labels a numeric or character with an attribute of \code{samples} to 
-#' be used as labels of the samples. Optional.
+#' @param id.labels a numeric or character with an column name from \code{y} to 
+#' be used as samples labels. Optional.
 #' 
 #' @param labels character vector with time series labels. For signature 
 #' \code{\link[dtwSat]{twdtwRaster}} this argument can be used to set the 
-#' labels for each \code{sample}, or it can be combined with \code{id.labels} 
+#' labels for each sample in \code{y}, or it can be combined with \code{id.labels} 
 #' to select samples with a specific label.
 #' 
 #' @param proj4string projection string, see \code{\link[sp]{CRS-class}}. Used 
-#' if \code{samples} is a \code{\link[base]{data.frame}}.
+#' if \code{y} is a \code{\link[base]{data.frame}}.
 #' 
 #' @return An object of class \code{\link[dtwSat]{twdtwTimeSeries}}.
 #'
@@ -54,11 +53,11 @@ setGeneric("getPatterns", function(object, ...) standardGeneric("getPatterns"))
 #'
 #' @examples
 #' # Getting time series from objects of class twdtwTimeSeries
-#' ts = twdtwTimeSeries(example_ts.list)
+#' ts = twdtwTimeSeries(MOD13Q1.ts.list)
 #' getTimeSeries(ts, 2)
 #' # Getting time series from objects of class twdtwTimeSeries
-#' ts = twdtwTimeSeries(example_ts.list)
-#' patt = twdtwTimeSeries(patterns.list)
+#' ts = twdtwTimeSeries(MOD13Q1.ts.list)
+#' patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 #' mat = twdtwApply(x=ts, y=patt)
 #' getTimeSeries(mat, 2)
 #' ## This example creates a twdtwRaster object and extract time series from it. 
@@ -117,29 +116,15 @@ getTimeSeries.twdtwTimeSeries = function(object, labels){
 setMethod("getTimeSeries", "twdtwRaster",
           function(object, y, labels=NULL, proj4string = NULL, id.labels=NULL){
           
-              if(!"label"%in%names(y)) y$label = paste0("ts",row.names(y))
-              if(!is.null(id.labels)) y$label = as.character(y[[id.labels]])
-              if(!is.null(id.labels) & !is.null(labels)){
-                I = which(!is.na(match(as.character(y$label), as.character(labels))))
-                if(length(I)<1) 
-                   stop("there is no matches between id.labels and labels")
-              } else if(!is.null(labels)) { 
-                        y$label = as.character(labels)
-              }
+              y = .adjustLabelID(y, labels, id.labels)
+
               if(!"from"%in%names(y))
                 y$from = as.Date(index(object)[1])
               if(!"to"%in%names(y))
                 y$to = as.Date(tail(index(object),1))
-              if(is(y, "data.frame")){
-                if(is.null(proj4string)){
-                  warning("Missing projection. Setting the same projection as the raster time series.", call. = FALSE)
-                  proj4string = CRS(projection(object))
-                }
-                if(!is(proj4string, "CRS")) proj4string = try(CRS(proj4string))
-                  y = SpatialPointsDataFrame(y[,c("longitude","latitude")], y, proj4string = proj4string)
-              }
-              if(!(is(y, "SpatialPoints") | is(y, "SpatialPointsDataFrame")))
-                  stop("y is not SpatialPoints or SpatialPointsDataFrame")
+
+              y = .toSpatialPointsDataFrame(y, object, proj4string)
+
               extractTimeSeries.twdtwRaster(object, y)
           })
 
@@ -167,9 +152,12 @@ extractTimeSeries.twdtwRaster = function(x, y){
   # Check if the sample time interval overlaps the raster time series 
   from  = try(as.Date(s$from))
   to    = try(as.Date(s$to))
-  doy   = c(x$doy[p,])
-  year  = format(timeline, "%Y")
-  dates = getDatesFromDOY(year = year, doy = doy)
+  dates = timeline
+  if(any(names(x)=="doy")){
+    doy   = c(x$doy[p,])
+    year  = format(timeline, "%Y")
+    dates = getDatesFromDOY(year = year, doy = doy)
+  }
   if(is.null(from) | is(from, "try-error")) from = dates[1]
   if(is.null(to) | is(to, "try-error")) to = tail(dates,1)
   # layer =  which( from - dates <= 0 )[1]
@@ -181,8 +169,7 @@ extractTimeSeries.twdtwRaster = function(x, y){
     return(NULL)
   }
   # Extract raster values 
-  I = which(names(x) %in% c("doy"))
-  ts = data.frame(sapply(x[-I], function(x) x[p,layer:(layer+nl-1)]))
+  ts = data.frame(sapply(x[!names(x)%in%c("doy")], function(x) x[p,layer:(layer+nl-1)]))
   dates = dates[layer:(layer+nl-1)]
   k = !duplicated(dates)
   zoo(data.frame(ts[k,, drop=FALSE]), dates[k])

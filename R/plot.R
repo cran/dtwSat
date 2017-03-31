@@ -54,6 +54,35 @@
 #' @export
 NULL
 
+#' @aliases plot-twdtwAssessment
+#' @inheritParams plot
+#' @rdname plot
+#' @export
+setMethod("plot", 
+          signature(x = "twdtwAssessment"),
+          function(x, type="area", ...){
+            pt = pmatch(type, c("area","accuracy","map"))
+            switch(pt,
+                   plotAdjustedArea(x, ...),
+                   plotAccuracy(x, ...),
+                   plotMapSamples(x, ...)
+            )
+          }
+)
+
+#' @aliases plot-twdtwTimeSeries
+#' @inheritParams plot
+#' @rdname plot
+#' @export
+setMethod("plot", 
+          signature(x = "twdtwCrossValidation"),
+          function(x, type="crossvalidation", ...){
+            pt = pmatch(type, c("crossvalidation"))
+            switch(pt,
+                   plotAccuracy(x, ...)
+            )
+          }
+)
 
 #' @aliases plot-twdtwTimeSeries
 #' @inheritParams plot
@@ -97,7 +126,7 @@ setMethod("plot",
 #' @export
 setMethod("plot", signature(x = "twdtwRaster"), function(x, type="maps", ...) .PlotRaster(x, type=type, ...))
 
-.PlotRaster = function(x, type, time.levels=NULL, time.labels=NULL, class.levels=NULL, class.labels=NULL, class.colors=NULL, layers=NULL, ...){
+.PlotRaster = function(x, type, time.levels=NULL, time.labels=NULL, class.levels=NULL, class.labels=NULL, class.colors=NULL, layers=NULL, perc=TRUE, ...){
   
   if(type=="distance") {
       
@@ -121,7 +150,8 @@ setMethod("plot", signature(x = "twdtwRaster"), function(x, type="maps", ...) .P
           time.labels=NULL
         }
         else {
-          layers = coverages(x)[-1]
+          layers = coverages(x)
+          layers = layers[!layers%in%"doy"]
           time.levels = time.levels[1]
           time.labels = time.labels[1]
           labels = layers
@@ -162,7 +192,7 @@ setMethod("plot", signature(x = "twdtwRaster"), function(x, type="maps", ...) .P
         class.levels = levels(x)
         
       if(length(class.levels)<1)
-        class.levels = sort(unique(as.numeric(x[[2]][])))
+        class.levels = sort(unique(as.numeric(x[["Class"]][])))
       
       if( is.null(class.labels))  
         class.labels = labels(x)
@@ -185,13 +215,13 @@ setMethod("plot", signature(x = "twdtwRaster"), function(x, type="maps", ...) .P
       names(class.levels) = class.labels
       names(class.labels) = class.labels
       
-      x = subset(x=x[[2]], subset=time.levels)
+      x = subset(x=x[["Class"]], subset=time.levels)
 
       pt = pmatch(type, c("maps","area","changes"))
       
       gp = switch(pt,
             .plotMaps(x, time.levels, time.labels, class.levels, class.labels, class.colors),
-            .plotArea(x, time.levels, time.labels, class.levels, class.labels, class.colors),
+            .plotArea(x, time.levels, time.labels, class.levels, class.labels, class.colors, perc),
             .plotChanges(x, time.levels, time.labels, class.levels, class.labels, class.colors)
       )
   }

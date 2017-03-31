@@ -38,7 +38,7 @@ Method for plotting time series of maps.
 \examples{
 \dontrun{
 # Run TWDTW analysis for raster time series 
-patt = yearly_patterns_mt
+patt = MOD13Q1.MT.yearly.patterns
 evi = brick(system.file("lucc_MT/data/evi.tif", package="dtwSat"))
 ndvi = brick(system.file("lucc_MT/data/ndvi.tif", package="dtwSat"))
 red = brick(system.file("lucc_MT/data/red.tif", package="dtwSat"))
@@ -56,14 +56,11 @@ log_fun = weight.fun=logisticWeight(-0.1,50)
 r_twdtw = twdtwApply(x=rts, y=patt, weight.fun=log_fun, breaks=time_interval, 
           filepath="~/test_twdtw", overwrite=TRUE, format="GTiff", mc.cores=3)
 
-r_lucc = twdtwClassify(r_twdtw, format="GTiff")
+r_lucc = twdtwClassify(r_twdtw, format="GTiff", overwrite=TRUE)
 
 plotMaps(r_lucc)
 
 }
-}
-\author{
-Victor Maus, \email{vwmaus1@gmail.com}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwRaster-class}},
@@ -72,4 +69,6 @@ Victor Maus, \email{vwmaus1@gmail.com}
 \code{\link[dtwSat]{plotChanges}}, and
 \code{\link[dtwSat]{plotDistance}}.
 }
-
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+}

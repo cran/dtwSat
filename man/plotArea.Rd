@@ -2,10 +2,10 @@
 % Please edit documentation in R/plotArea.R
 \name{plotArea}
 \alias{plotArea}
-\title{Plotting maps}
+\title{Plotting accumulated area}
 \usage{
 plotArea(x, time.levels = NULL, time.labels = NULL, class.levels = NULL,
-  class.labels = NULL, class.colors = NULL)
+  class.labels = NULL, class.colors = NULL, perc = TRUE)
 }
 \arguments{
 \item{x}{An object of class \code{\link[dtwSat]{twdtwRaster}}.}
@@ -28,17 +28,20 @@ length as class.levels. Default is NULL.}
 \item{class.colors}{a set of aesthetic values. It must have the same 
 length as class.levels. Default is NULL. See 
 \link[ggplot2]{scale_fill_manual} for details.}
+
+\item{perc}{if TRUE shows the results in percent of area. Otherwise shows the 
+area in the map units or km2 for no project raster. Default is TRUE.}
 }
 \value{
 A \link[ggplot2]{ggplot} object.
 }
 \description{
-Method for plotting time series of maps.
+Method for plotting time series of accumulated area.
 }
 \examples{
 \dontrun{
-# Run TWDTW analysis for raster time series 
-patt = yearly_patterns_mt
+
+# Create raster time series
 evi = brick(system.file("lucc_MT/data/evi.tif", package="dtwSat"))
 ndvi = brick(system.file("lucc_MT/data/ndvi.tif", package="dtwSat"))
 red = brick(system.file("lucc_MT/data/red.tif", package="dtwSat"))
@@ -49,21 +52,35 @@ doy = brick(system.file("lucc_MT/data/doy.tif", package="dtwSat"))
 timeline = scan(system.file("lucc_MT/data/timeline", package="dtwSat"), what="date")
 rts = twdtwRaster(evi, ndvi, red, blue, nir, mir, timeline = timeline, doy = doy)
 
-time_interval = seq(from=as.Date("2007-09-01"), to=as.Date("2013-09-01"), 
-                    by="12 month")
+# Read fiels samples 
+field_samples = read.csv(system.file("lucc_MT/data/samples.csv", package="dtwSat"))
+proj_str = scan(system.file("lucc_MT/data/samples_projection", 
+                package="dtwSat"), what = "character")
+
+# Split samples for training (10\%) and validation (90\%) using stratified sampling 
+library(caret) 
+set.seed(1)
+I = unlist(createDataPartition(field_samples$label, p = 0.1))
+training_samples = field_samples[I,]
+validation_samples = field_samples[-I,]
+
+# Create temporal patterns 
+training_ts = getTimeSeries(rts, y = training_samples, proj4string = proj_str)
+temporal_patterns = createPatterns(training_ts, freq = 8, formula = y ~ s(x))
+
+# Run TWDTW analysis for raster time series 
 log_fun = weight.fun=logisticWeight(-0.1,50)
-
-r_twdtw = twdtwApply(x=rts, y=patt, weight.fun=log_fun, breaks=time_interval, 
-          filepath="~/test_twdtw", overwrite=TRUE, format="GTiff", mc.cores=3)
-
-r_lucc = twdtwClassify(r_twdtw, format="GTiff")
+r_twdtw = twdtwApply(x=rts, y=temporal_patterns, weight.fun=log_fun, format="GTiff", 
+                     overwrite=TRUE)
+                     
+# Classify raster based on the TWDTW analysis 
+r_lucc = twdtwClassify(r_twdtw, format="GTiff", overwrite=TRUE)
 
 plotArea(r_lucc)
 
+plotArea(r_lucc, perc=FALSE)
+
 }
-}
-\author{
-Victor Maus, \email{vwmaus1@gmail.com}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwRaster-class}},
@@ -72,4 +89,6 @@ Victor Maus, \email{vwmaus1@gmail.com}
 \code{\link[dtwSat]{plotChanges}}, and
 \code{\link[dtwSat]{plotDistance}}.
 }
-
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+}

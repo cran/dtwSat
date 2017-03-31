@@ -41,11 +41,11 @@
 #'
 #' @examples
 #' # Getting time series from objects of class twdtwTimeSeries
-#' ts = twdtwTimeSeries(example_ts.list)
+#' ts = twdtwTimeSeries(MOD13Q1.ts.list)
 #' ts = subset(ts, 2)
 #' ts
 #' # Getting time series from objects of class twdtwTimeSeries
-#' patt = twdtwTimeSeries(patterns.list)
+#' patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 #' mat = twdtwApply(x=ts, y=patt, weight.fun=logisticWeight(-0.1,100))
 #' mat = subset(mat, k=4)
 #' 
@@ -134,9 +134,10 @@ setMethod("subset", "twdtwRaster", function(x, e=NULL, layers=NULL)
           subset.twdtwRaster(x=x, e=e, layers=layers) )
 
 subset.twdtwRaster = function(x, e, layers){
-    if(is.null(layers)) layers = names(x)
-    layers = c("doy", layers[layers!="doy"])
-    if(is.null(e)) e = extent(x@timeseries$doy)
+    if(is.null(layers)) 
+      layers = names(x)
+    if(is.null(e))
+      e = extent(x)
     res = x
     res@layers = layers
     res@timeseries = res@timeseries[layers]

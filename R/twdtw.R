@@ -17,6 +17,8 @@
   labels = as.character(labels(y))
   names(labels) = labels
   timeseries = x[[1]]
+  # Remove possible NA values 
+  timeseries = timeseries[!apply(is.na(timeseries), 1, all),,drop=FALSE]
   
   fun = function(l){
     pattern = y[[l]]
@@ -142,20 +144,19 @@ initAlignments = function(...){
   res
 }
 
-#' @useDynLib dtwSat g
+# @useDynLib dtwSat g
 .g = function(phi, step.matrix){
 
-  if(!is.loaded("computecost", PACKAGE = "dtwSat", type = "Fortran"))
+  if(!is.loaded("g", PACKAGE = "dtwSat", type = "Fortran"))
     stop("Fortran lib is not loaded")
 
   n = nrow(phi)
   m = ncol(phi)
-  res = .Fortran("g", 
+  res = .Fortran(g, 
       TM = matrix(as.double(phi), n, m),
       N  = as.integer(n),
       M  = as.integer(m),
-      PC = as.double(366),
-      PACKAGE="dtwSat")
+      PC = as.double(366))
   res$TM
 }
 

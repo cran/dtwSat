@@ -3,11 +3,11 @@
 \docType{methods}
 \name{shiftDates}
 \alias{shiftDates}
-\alias{shiftDates,list-method}
 \alias{shiftDates,twdtwTimeSeries-method}
-\alias{shiftDates,zoo-method}
-\alias{shiftDates-list}
 \alias{shiftDates-twdtwTimeSeries}
+\alias{shiftDates,list-method}
+\alias{shiftDates-list}
+\alias{shiftDates,zoo-method}
 \alias{shiftDates-zoo}
 \title{Shift dates}
 \usage{
@@ -33,16 +33,15 @@ This function shifts the dates of the time series to a
 given base year.
 }
 \examples{
-patt = twdtwTimeSeries(patterns.list)
+patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 npatt = shiftDates(patt, year=2005)
 index(patt)
 index(npatt)
 
 }
-\author{
-Victor Maus, \email{vwmaus1@gmail.com}
-}
 \seealso{
 \code{\link[dtwSat]{twdtwTimeSeries-class}}
 }
-
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+}

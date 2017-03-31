@@ -3,12 +3,12 @@
 \docType{methods}
 \name{subset}
 \alias{subset}
-\alias{subset,twdtwMatches-method}
-\alias{subset,twdtwRaster-method}
 \alias{subset,twdtwTimeSeries-method}
-\alias{subset-twdtwMatches}
-\alias{subset-twdtwRaster}
 \alias{subset-twdtwTimeSeries}
+\alias{subset,twdtwMatches-method}
+\alias{subset-twdtwMatches}
+\alias{subset,twdtwRaster-method}
+\alias{subset-twdtwRaster}
 \title{Subset time series}
 \usage{
 \S4method{subset}{twdtwTimeSeries}(x, labels = NULL)
@@ -44,11 +44,11 @@ Get subsets from objects of class twdtw*.
 }
 \examples{
 # Getting time series from objects of class twdtwTimeSeries
-ts = twdtwTimeSeries(example_ts.list)
+ts = twdtwTimeSeries(MOD13Q1.ts.list)
 ts = subset(ts, 2)
 ts
 # Getting time series from objects of class twdtwTimeSeries
-patt = twdtwTimeSeries(patterns.list)
+patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 mat = twdtwApply(x=ts, y=patt, weight.fun=logisticWeight(-0.1,100))
 mat = subset(mat, k=4)
 
@@ -73,12 +73,11 @@ ts_evi = getTimeSeries(rts_evi, y = field_samples, proj4string = prj_string)
 ts_forest = subset(ts_evi, labels="Forest")
 
 }
-\author{
-Victor Maus, \email{vwmaus1@gmail.com}
-}
 \seealso{
 \code{\link[dtwSat]{twdtwRaster-class}}, 
 \code{\link[dtwSat]{twdtwTimeSeries-class}}, and 
 \code{\link[dtwSat]{twdtwMatches-class}}
 }
-
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+}

@@ -29,6 +29,8 @@
 #' the same length as \code{timeseries} or a list of twdtwMatches.
 #' @param ... objects of class twdtwMatches.
 #' 
+#' @include class-twdtwTimeSeries.R
+#' 
 #' @section Slots :
 #' \describe{
 #'  \item{\code{timeseries}:}{An object of class \code{\link[dtwSat]{twdtwTimeSeries-class}} with the satellite time series.}
@@ -66,15 +68,14 @@
 #' \code{\link[dtwSat]{twdtwRaster-class}}
 #' 
 #' @examples 
-#' ts = twdtwTimeSeries(timeseries=example_ts.list)
-#' patterns = twdtwTimeSeries(timeseries=patterns.list)
+#' ts = twdtwTimeSeries(timeseries=MOD13Q1.ts.list)
+#' patterns = twdtwTimeSeries(timeseries=MOD13Q1.patterns.list)
 #' matches = twdtwApply(x = ts, y = patterns)
 #' class(matches)
 #' length(matches)
 #' matches 
 NULL
-setOldClass("twdtwTimeSeries")
-twdtwMatches = setClass(
+setClass(
   Class = "twdtwMatches",
   slots = c(timeseries="twdtwTimeSeries", 
             patterns = "twdtwTimeSeries", 
@@ -121,8 +122,8 @@ setGeneric(name = "twdtwMatches",
 #'
 #' @examples 
 #' # Creating objects of class twdtwMatches 
-#' ts  = twdtwTimeSeries(example_ts.list)
-#' patt = twdtwTimeSeries(patterns.list)
+#' ts  = twdtwTimeSeries(MOD13Q1.ts.list)
+#' patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 #' mat = twdtwApply(ts, patt, weight.fun = logisticWeight(-0.1, 100))
 #' mat = twdtwMatches(ts, patterns=patt, alignments=mat)
 #' mat

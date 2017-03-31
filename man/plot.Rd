@@ -3,14 +3,22 @@
 \docType{methods}
 \name{plot}
 \alias{plot}
-\alias{plot,twdtwMatches,ANY-method}
-\alias{plot,twdtwRaster,ANY-method}
-\alias{plot,twdtwTimeSeries,ANY-method}
-\alias{plot-twdtwMatches}
-\alias{plot-twdtwRaster}
+\alias{plot,twdtwAssessment,ANY-method}
+\alias{plot-twdtwAssessment}
+\alias{plot,twdtwCrossValidation,ANY-method}
 \alias{plot-twdtwTimeSeries}
+\alias{plot,twdtwTimeSeries,ANY-method}
+\alias{plot-twdtwTimeSeries}
+\alias{plot,twdtwMatches,ANY-method}
+\alias{plot-twdtwMatches}
+\alias{plot,twdtwRaster,ANY-method}
+\alias{plot-twdtwRaster}
 \title{Plotting twdtw* objects}
 \usage{
+\S4method{plot}{twdtwAssessment,ANY}(x, type = "area", ...)
+
+\S4method{plot}{twdtwCrossValidation,ANY}(x, type = "crossvalidation", ...)
+
 \S4method{plot}{twdtwTimeSeries,ANY}(x, type = "timeseries", ...)
 
 \S4method{plot}{twdtwMatches,ANY}(x, type = "alignments", ...)
@@ -58,4 +66,3 @@ Methods for plotting objects of class twdtw*.
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}
 }
-

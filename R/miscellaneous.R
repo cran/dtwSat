@@ -1,17 +1,3 @@
-###############################################################
-#                                                             #
-#   (c) Victor Maus <vwmaus1@gmail.com>                       #
-#       Institute for Geoinformatics (IFGI)                   #
-#       University of Muenster (WWU), Germany                 #
-#                                                             #
-#       Earth System Science Center (CCST)                    #
-#       National Institute for Space Research (INPE), Brazil  #
-#                                                             #
-#                                                             #
-#   R Package dtwSat - 2016-01-16                             #
-#                                                             #
-###############################################################
-
 
 #' @title Get dates from year and day of the year
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
@@ -68,7 +54,7 @@ setGeneric("shiftDates", function(object, year=NULL) standardGeneric("shiftDates
 #' @rdname shiftDates
 #' @aliases shiftDates-twdtwTimeSeries
 #' @examples
-#' patt = twdtwTimeSeries(patterns.list)
+#' patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 #' npatt = shiftDates(patt, year=2005)
 #' index(patt)
 #' index(npatt)
@@ -85,6 +71,7 @@ setMethod("shiftDates", "list",
           function(object, year) 
             shiftDates(twdtwTimeSeries(object), year=year)[])
 
+setOldClass("zoo")
 #' @rdname shiftDates
 #' @aliases shiftDates-zoo
 #' @export
@@ -104,115 +91,91 @@ shiftDates.twdtwTimeSeries = function(x, year){
 }
 
 
-#' @title Classification assessment 
-#' @name Assessment
-#' 
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' 
-#' @description This functions create data partitions and compute assessment metrics. 
-#' 
-#' @param object an object of class \code{\link[dtwSat]{twdtwTimeSeries}} or 
-#' \code{\link[dtwSat]{twdtwMatches}}.
-#' 
-#' @param times Number of partitions to create.
-#' 
-#' @param p the percentage of data that goes to training. 
-#' See \code{\link[caret]{createDataPartition}} for details.
-#' 
-#' @param ... Other arguments to be passed to \code{\link[dtwSat]{createPatterns}}.
-#' 
-#' @param matrix logical. If TRUE retrieves the confusion matrix. 
-#' FALSE retrieves User's Accuracy (UA) and Producer's Accuracy (PA). 
-#' Dafault is FALSE. 
-#' 
-#' @details 
-#' \describe{
-#'  \item{\code{splitDataset}:}{This function splits the a set of time 
-#'        series into training and validation. The function uses stratified 
-#'        sampling and a simple random sampling for each stratum. Each data partition 
-#'        returned by this function has the temporal patterns and a set of time series for 
-#'        validation.}
-#'  \item{\code{twdtwAssess}:}{The function \code{splitDataset} performs the assessment of 
-#'        the classification based on the labels of the classified time series 
-#'        (Reference) and the labels of the classification (Predicted). This function
-#'        returns a data.frame with User's and Produce's Accuracy or a list for confusion 
-#'        matrices.}
-#' }
-#'
-#' @seealso 
-#' \code{\link[dtwSat]{twdtwMatches-class}},
-#' \code{\link[dtwSat]{twdtwApply}}, and 
-#' \code{\link[dtwSat]{twdtwClassify}}.
-#'
-#' @examples
-#' \dontrun{
-#' load(system.file("lucc_MT/field_samples_ts.RData", package="dtwSat"))
-#' set.seed(1)
-#' partitions = splitDataset(field_samples_ts, p=0.1, times=5, 
-#'                           freq = 8, formula = y ~ s(x, bs="cc"))
-#' log_fun = logisticWeight(alpha=-0.1, beta=50) 
-#' twdtw_res = lapply(partitions, function(x){
-#'    res = twdtwApply(x = x$ts, y = x$patterns, weight.fun = log_fun, n=1)
-#'    twdtwClassify(x = res)
-#' })
-#' assessment = twdtwAssess(twdtw_res)
-#' head(assessment, 5)
-#' }
-NULL
-
-setGeneric("splitDataset", function(object, times, p, ...) standardGeneric("splitDataset"))
-
-#' @rdname Assessment
-#' @aliases splitDataset
-#' @export
-setMethod("splitDataset", "twdtwTimeSeries",
-          function(object, times=1, p=0.1, ...) splitDataset.twdtwTimeSeries(object, times=times, p=p, ...))
-            
-splitDataset.twdtwTimeSeries = function(object, times, p, ...){
-  
-  partitions = createDataPartition(y = labels(object), times, p, list = TRUE)
-  
-  res = lapply(partitions, function(I){
-      training_ts = subset(object, I)
-      validation_ts = subset(object, -I)
-      patt = createPatterns(training_ts, ...)
-      list(patterns=patt, ts=validation_ts)
-  })
-  
-  res
+.adjustFactores = function(ref, pred, levels=NULL, labels=NULL){
+  ref  = as.character(ref)
+  pred = as.character(pred)
+  if(is.null(levels))
+    levels = sort(unique(ref))
+  if(is.null(labels))
+    labels = levels
+  ref  = factor(ref,  levels, labels)
+  pred = factor(pred, levels, labels)
+  data = data.frame(Predicted=pred, Reference=ref)
 }
 
-
-setGeneric("twdtwAssess", function(object, matrix=FALSE) standardGeneric("twdtwAssess"))
-
-#' @rdname Assessment
-#' @aliases twdtwAssess
-#' @export
-setMethod("twdtwAssess", "list",
-          function(object, matrix) twdtwAssess.twdtwTimeSeries(object, matrix=matrix))
-
-twdtwAssess.twdtwTimeSeries = function(object, matrix){
-
- res = lapply(object, function(x){
-        ref = labels(x)$timeseries
-        levels = sort(as.character(unique(ref)))
-        labels = levels 
-        # pred = factor(do.call("rbind", x[])$label, levels, labels)
-        pred = do.call("rbind", lapply(x[], function(xx) as.character(xx$label[which.min(xx$distance)])) )
-        ref = factor(ref, levels, labels)
-        table(Reference=ref, Predicted=pred)
- })
-    
- if(!matrix){
-    res = do.call("rbind", lapply(seq_along(res), function(i){
-        x = res[[i]]
-        Users = diag(x) / rowSums(x)
-        Producers = diag(x) / colSums(x)
-        data.frame(resample=i,label=names(Users), UA = Users, PA = Producers, row.names=NULL)
-    }))
+.adjustLabelID = function(y, labels, id.labels){
+  if(!"label"%in%names(y)) y$label = paste0("ts",row.names(y))
+  if(!is.null(id.labels)) y$label = as.character(y[[id.labels]])
+  if(!is.null(id.labels) & !is.null(labels)){
+    I = which(!is.na(match(as.character(y$label), as.character(labels))))
+    if(length(I)<1) 
+      stop("there is no matches between id.labels and labels")
+  } else if(!is.null(labels)) { 
+    y$label = as.character(labels)
   }
-  
-  res
-  
+  y
 }
+
+.toSpatialPointsDataFrame = function(y, object, proj4string){
+  if(is(y, "data.frame")){
+    if(is.null(proj4string)){
+      warning("Missing projection. Setting the same projection as the raster time series.", call. = FALSE)
+      proj4string = CRS(projection(object))
+    }
+    if(!is(proj4string, "CRS")) proj4string = try(CRS(proj4string))
+    y = SpatialPointsDataFrame(y[,c("longitude","latitude")], y, proj4string = proj4string)
+  }
+  if(!(is(y, "SpatialPoints") | is(y, "SpatialPointsDataFrame")))
+    stop("y is not SpatialPoints or SpatialPointsDataFrame")
+  row.names(y) = 1:nrow(y)
+  y
+}
+
+
+.getPredRefClasses = function(i, r_intervals, pred_classes, pred_distance, y, rlevels, rnames){
+  i_leng = as.numeric(r_intervals$to[i] - r_intervals$from[i])
+  from   = as.Date(y$from)
+  to     = as.Date(y$to)
+  # Select overlapping alignments 
+  J      = which(from <= r_intervals$to[i] & to >= r_intervals$from[i])
+  # Adjust overlapping 
+  from   = sapply(from[J], function(x) ifelse(x < r_intervals$from[i], r_intervals$from[i], x))
+  to     = sapply(to[J], function(x) ifelse(x > r_intervals$to[i], r_intervals$to[i], x))
+  # Compute overlapping proportion 
+  i_over = to - from 
+  # print(i_leng)
+  # print(i_over)
+  prop_over = abs(i_over / i_leng)
+  # Select alignments 
+  I = which(prop_over > .5)
+  # I = which((r_intervals$to[i] - as.Date(y$from) > 30) & (as.Date(y$to) - r_intervals$from[i] > 30) )
+  if(length(J[I])<1)
+    return(NULL)
+  K = match(pred_classes[J[I],i], rlevels)
+  Predicted = factor(as.character(rnames[K]), levels = rnames, labels = rnames)
+  Reference = factor(as.character(y$label[J[I]]), levels = rnames, labels = rnames)
+  Distance = pred_distance[J[I],i]
+  data.frame(Sample.id = row.names(y)[J[I]], coordinates(y[J[I],]), Period=i, from=r_intervals$from[i], to=r_intervals$to[i], Predicted, Reference, Distance)
+}
+
+.getAreaByClass = function(l, r, rlevels, rnames){
+  r = raster(r, layer = l)
+  if(isLonLat(r)){
+    warning("Computing the approximate surface area in km2 of cells in an unprojected (longitude/latitude) Raster object. See ?raster::area", call. = TRUE)
+    # r = projectRaster(from = r, crs = proj_str, method = 'ngb')
+    ra = area(r)
+    I = lapply(rlevels, function(i) r[]==i )
+    out = sapply(I, function(i) sum(ra[i], na.rm = TRUE) )
+    names(out) = rnames
+  } else {
+    npx = zonal(r, r, 'count')
+    I = match(npx[,'zone'], rlevels)
+    out = rep(0, length(rnames))
+    names(out) = rnames
+    out[I] = npx[,'count'] * prod(res(r))
+    names(out) = rnames
+  }
+  out
+}
+
 

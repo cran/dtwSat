@@ -4,9 +4,9 @@
 \name{twdtwClassify}
 \alias{twdtwClassify}
 \alias{twdtwClassify,twdtwMatches-method}
+\alias{twdtwClassify-twdtwTimeSeries}
 \alias{twdtwClassify,twdtwRaster-method}
 \alias{twdtwClassify-twdtwRaster}
-\alias{twdtwClassify-twdtwTimeSeries}
 \title{Classify time series}
 \usage{
 twdtwClassify(x, ...)
@@ -60,8 +60,8 @@ based on the TWDTW results.
 }
 \examples{
 # Classifying time series based on TWDTW results 
-ts = twdtwTimeSeries(example_ts.list)
-patt = twdtwTimeSeries(patterns.list)
+ts = twdtwTimeSeries(MOD13Q1.ts.list)
+patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 log_fun = logisticWeight(-0.1, 100)
 time_intervals = seq(from=as.Date("2007-09-01"), to=as.Date("2013-09-01"), by="6 month")
 mat = twdtwApply(x=ts, y=patt, weight.fun=log_fun, keep=TRUE)
@@ -70,12 +70,12 @@ plot(x=best_mat, type="classification")
 
 \dontrun{
 require(parallel)
-best_mat = mclapply(as.list(mat), mc.cores=4, FUN=twdtwClassify, breaks=time_intervals, overlap=0.5)
+best_mat = mclapply(as.list(mat), mc.cores=2, FUN=twdtwClassify, breaks=time_intervals, overlap=0.5)
 best_mat = twdtwMatches(alignments=best_mat)
 }
 \dontrun{
 # Run TWDTW analysis for raster time series 
-patt = yearly_patterns_mt
+patt = MOD13Q1.MT.yearly.patterns
 evi = brick(system.file("lucc_MT/data/evi.tif", package="dtwSat"))
 ndvi = brick(system.file("lucc_MT/data/ndvi.tif", package="dtwSat"))
 red = brick(system.file("lucc_MT/data/red.tif", package="dtwSat"))
@@ -99,13 +99,12 @@ plotMaps(r_lucc)
 
 }
 }
-\author{
-Victor Maus, \email{vwmaus1@gmail.com}
-}
 \seealso{
 \code{\link[dtwSat]{twdtwApply}}, 
 \code{\link[dtwSat]{twdtwMatches-class}}, 
 \code{\link[dtwSat]{twdtwTimeSeries-class}}, and 
 \code{\link[dtwSat]{twdtwRaster-class}},
 }
-
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+}

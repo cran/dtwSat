@@ -46,7 +46,7 @@
 #' @examples
 #' \dontrun{
 #' # Run TWDTW analysis for raster time series 
-#' patt = yearly_patterns_mt
+#' patt = MOD13Q1.MT.yearly.patterns
 #' evi = brick(system.file("lucc_MT/data/evi.tif", package="dtwSat"))
 #' ndvi = brick(system.file("lucc_MT/data/ndvi.tif", package="dtwSat"))
 #' red = brick(system.file("lucc_MT/data/red.tif", package="dtwSat"))
@@ -64,7 +64,7 @@
 #' r_twdtw = twdtwApply(x=rts, y=patt, weight.fun=log_fun, breaks=time_interval, 
 #'           filepath="~/test_twdtw", overwrite=TRUE, format="GTiff", mc.cores=3)
 #' 
-#' r_lucc = twdtwClassify(r_twdtw, format="GTiff")
+#' r_lucc = twdtwClassify(r_twdtw, format="GTiff", overwrite=TRUE)
 #' 
 #' plotMaps(r_lucc)
 #' 
@@ -79,6 +79,8 @@ plotMaps = function(x, time.levels=NULL, time.labels=NULL, class.levels=NULL, cl
   df.map = data.frame(coordinates(x), x[], stringsAsFactors=FALSE)
   df.map = melt(df.map, id.vars = c("x", "y"))
   df.map$value = factor(df.map$value, levels = class.levels, labels = class.labels)
+  df.map$rast.layer = seq_along(time.levels)[match(as.character(df.map$variable), time.levels)]
+  df.map$rast.level = time.levels[match(as.character(df.map$variable), time.levels)]
   df.map$variable = time.labels[match(as.character(df.map$variable), time.levels)]
   
   gp = ggplot(data=df.map, aes_string(x="x", y="y")) +
@@ -91,8 +93,6 @@ plotMaps = function(x, time.levels=NULL, time.labels=NULL, class.levels=NULL, cl
     coord_fixed(ratio = 1) + 
     xlab("") +
     ylab("")
-    # xlab("Longitude") + 
-    # ylab("Latitude")
   gp 
   
 }

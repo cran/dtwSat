@@ -3,15 +3,15 @@
 \docType{methods}
 \name{twdtwApply}
 \alias{twdtwApply}
-\alias{twdtwApply,twdtwRaster-method}
 \alias{twdtwApply,twdtwTimeSeries-method}
-\alias{twdtwApply-twdtwRaster}
 \alias{twdtwApply-twdtwTimeSeries}
+\alias{twdtwApply,twdtwRaster-method}
+\alias{twdtwApply-twdtwRaster}
 \title{Apply TWDTW analysis}
 \usage{
 twdtwApply(x, y, resample = TRUE, length = NULL, weight.fun = NULL,
   dist.method = "Euclidean", step.matrix = symmetric1, n = NULL,
-  span = NULL, min.length = 0.5, theta = 0.5, ...)
+  span = NULL, min.length = 0, theta = 0.5, ...)
 
 \S4method{twdtwApply}{twdtwTimeSeries}(x, y, resample, length, weight.fun,
   dist.method, step.matrix, n, span, min.length, theta, keep = FALSE, ...)
@@ -19,7 +19,7 @@ twdtwApply(x, y, resample = TRUE, length = NULL, weight.fun = NULL,
 \S4method{twdtwApply}{twdtwRaster}(x, y, resample, length, weight.fun,
   dist.method, step.matrix, n, span, min.length, theta, breaks = NULL,
   from = NULL, to = NULL, by = NULL, overlap = 0.5, chunk.size = 1000,
-  filepath = NULL, ...)
+  filepath = NULL, silent = FALSE, ...)
 }
 \arguments{
 \item{x}{an object of class twdtw*. This is the target time series. 
@@ -64,8 +64,7 @@ for the TWDTW computation. Use \code{theta=0} to cancel the time-weight,
 \emph{i.e.} to run the original DTW algorithm. Default is 0.5, meaning that 
 the time has the same weight as the curve shape in the TWDTW analysis.}
 
-\item{...}{arguments to pass to \code{\link[raster]{writeRaster}} and for parallel 
-processing to pass to \code{\link[parallel]{mclapply}}.}
+\item{...}{arguments to pass to \code{\link[raster]{writeRaster}}}
 
 \item{keep}{preserves the cost matrix, inputs, and other internal structures. 
 Default is FALSE. For plot methods use \code{keep=TRUE}.}
@@ -88,6 +87,8 @@ see \code{\link[raster]{blockSize}} for details.}
 
 \item{filepath}{A character. The path to save the raster with results. If not informed the 
 function saves in the current work directory.}
+
+\item{silent}{if set to TRUE then hide chunk processing message. Default is FALSE.}
 }
 \value{
 An object of class twdtw*.
@@ -109,8 +110,8 @@ See [1] for details about the method.
 \examples{
 # Applying TWDTW analysis to objects of class twdtwTimeSeries
 log_fun = logisticWeight(-0.1, 100)
-ts = twdtwTimeSeries(example_ts.list)
-patt = twdtwTimeSeries(patterns.list)
+ts = twdtwTimeSeries(MOD13Q1.ts.list)
+patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 mat1 = twdtwApply(x=ts, y=patt, weight.fun=log_fun)
 mat1
 
@@ -122,7 +123,7 @@ mat2 = twdtwMatches(alignments=mat_list)
 }
 \dontrun{
 # Run TWDTW analysis for raster time series 
-patt = yearly_patterns_mt
+patt = MOD13Q1.MT.yearly.patterns
 evi = brick(system.file("lucc_MT/data/evi.tif", package="dtwSat"))
 ndvi = brick(system.file("lucc_MT/data/ndvi.tif", package="dtwSat"))
 red = brick(system.file("lucc_MT/data/red.tif", package="dtwSat"))
@@ -138,8 +139,7 @@ time_interval = seq(from=as.Date("2007-09-01"), to=as.Date("2013-09-01"),
 log_fun = weight.fun=logisticWeight(-0.1,50)
 
 r_twdtw = twdtwApply(x=rts, y=patt, weight.fun=log_fun, breaks=time_interval, 
-          filepath="~/test_twdtw", overwrite=TRUE, format="GTiff", mc.cores=3, 
-          chunk.size=1000)
+          filepath="~/test_twdtw", overwrite=TRUE, format="GTiff")
 
 plot(r_twdtw, type="distance")
 
@@ -151,14 +151,11 @@ plot(r_lucc, type="distance")
 
 }
 }
-\author{
-Victor Maus, \email{vwmaus1@gmail.com}
-}
 \references{
 [1] Maus  V,  Camara  G,  Cartaxo  R,  Sanchez  A,  Ramos  FM,  de Queiroz, GR.
 (2016). A Time-Weighted Dynamic Time Warping method for land use and land cover 
-mapping. Selected Topics in Applied Earth Observations and Remote Sensing, 
-IEEE Journal of, vol.PP, no.99, pp.1-11.
+mapping. IEEE Journal of Selected Topics in Applied Earth Observations and Remote 
+Sensing, vol.9, no.8, pp.3729-3739.
 
 [2] Giorgino, T. (2009). Computing and Visualizing Dynamic Time Warping Alignments in R: 
 The dtw Package. Journal of Statistical Software, 31, 1-24.
@@ -173,4 +170,6 @@ and Motion (pp. 79-84). London: Springer London, Limited.
 \code{\link[dtwSat]{getTimeSeries}}, and 
 \code{\link[dtwSat]{createPatterns}}
 }
-
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+}

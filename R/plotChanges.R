@@ -46,7 +46,7 @@
 #' @examples
 #' \dontrun{
 #' # Run TWDTW analysis for raster time series 
-#' patt = yearly_patterns_mt
+#' patt = MOD13Q1.MT.yearly.patterns
 #' evi = brick(system.file("lucc_MT/data/evi.tif", package="dtwSat"))
 #' ndvi = brick(system.file("lucc_MT/data/ndvi.tif", package="dtwSat"))
 #' red = brick(system.file("lucc_MT/data/red.tif", package="dtwSat"))
@@ -62,9 +62,9 @@
 #' log_fun = weight.fun=logisticWeight(-0.1,50)
 #' 
 #' r_twdtw = twdtwApply(x=rts, y=patt, weight.fun=log_fun, breaks=time_interval, 
-#'           filepath="~/test_twdtw", overwrite=TRUE, format="GTiff", mc.cores=3)
+#'           filepath="~/test_twdtw", overwrite=TRUE, format="GTiff")
 #' 
-#' r_lucc = twdtwClassify(r_twdtw, format="GTiff")
+#' r_lucc = twdtwClassify(r_twdtw, format="GTiff", overwrite=TRUE)
 #' 
 #' plotChanges(r_lucc)
 #' 
@@ -96,8 +96,8 @@ plotChanges = function(x, time.levels=NULL, time.labels=NULL, class.levels=NULL,
   
   # Plot change 
   gp = ggplot() +
-    geom_bar(data=df[I,], aes_string(x="to", y="Freq", fill="from"), stat="identity") +
-    geom_bar(data=df[I,], aes_string(x="from", y="-Freq", fill="to"), stat="identity") +
+    geom_bar(data=df[I,], position = "stack", aes_string(x="to", y="Freq", fill="from"), stat="identity") +
+    geom_bar(data=df[I,], position = "stack", aes_string(x="from", y="-Freq", fill="to"), stat="identity") +
     facet_wrap(~layer) +
     scale_fill_manual(name = "Legend", values = class.colors) + 
     scale_y_continuous(labels = percent) + 

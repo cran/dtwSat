@@ -27,16 +27,15 @@ A \link[ggplot2]{ggplot} object.
 Method for plotting the temporal patterns.
 }
 \examples{
-patt = twdtwTimeSeries(patterns.list)
+patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 plotPatterns(patt)
 plotPatterns(patt, attr="evi")
 
-}
-\author{
-Victor Maus, \email{vwmaus1@gmail.com}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwTimeSeries-class}} and 
 \code{\link[dtwSat]{plotTimeSeries}}
 }
-
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+}

@@ -33,7 +33,7 @@
 #' \code{\link[dtwSat]{plotPatterns}}
 #'  
 #' @examples
-#' ts = twdtwTimeSeries(example_ts.list)
+#' ts = twdtwTimeSeries(MOD13Q1.ts.list)
 #' plotTimeSeries(ts)
 #' plotTimeSeries(ts, attr="evi")
 #' 
@@ -42,8 +42,8 @@ plotTimeSeries = function(x, labels=NULL, attr){
   
   if(is(x, "twdtwMatches")) x = subset(x@timeseries, labels)
   if(is(x, "twdtwTimeSeries")) x = subset(x, labels) 
-  if(is.null(labels)) labels = labels(x) 
-  new_labels = as.character(labels(x))
+  if(is.null(labels)) labels = labels(x)
+  new_labels = labels(x)
   labels_tabel = table(new_labels)
   if(any(labels_tabel>1))
     for(p in names(labels_tabel)){

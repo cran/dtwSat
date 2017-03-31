@@ -38,7 +38,7 @@ Method for plotting changes over time.
 \examples{
 \dontrun{
 # Run TWDTW analysis for raster time series 
-patt = yearly_patterns_mt
+patt = MOD13Q1.MT.yearly.patterns
 evi = brick(system.file("lucc_MT/data/evi.tif", package="dtwSat"))
 ndvi = brick(system.file("lucc_MT/data/ndvi.tif", package="dtwSat"))
 red = brick(system.file("lucc_MT/data/red.tif", package="dtwSat"))
@@ -54,16 +54,13 @@ time_interval = seq(from=as.Date("2007-09-01"), to=as.Date("2013-09-01"),
 log_fun = weight.fun=logisticWeight(-0.1,50)
 
 r_twdtw = twdtwApply(x=rts, y=patt, weight.fun=log_fun, breaks=time_interval, 
-          filepath="~/test_twdtw", overwrite=TRUE, format="GTiff", mc.cores=3)
+          filepath="~/test_twdtw", overwrite=TRUE, format="GTiff")
 
-r_lucc = twdtwClassify(r_twdtw, format="GTiff")
+r_lucc = twdtwClassify(r_twdtw, format="GTiff", overwrite=TRUE)
 
 plotChanges(r_lucc)
 
 }
-}
-\author{
-Victor Maus, \email{vwmaus1@gmail.com}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwRaster-class}},
@@ -72,4 +69,6 @@ Victor Maus, \email{vwmaus1@gmail.com}
 \code{\link[dtwSat]{plotMaps}}, and
 \code{\link[dtwSat]{plotDistance}}.
 }
-
+\author{
+Victor Maus, \email{vwmaus1@gmail.com}
+}

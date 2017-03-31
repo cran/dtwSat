@@ -69,8 +69,8 @@ setGeneric(name = "twdtwClassify",
 #' @aliases twdtwClassify-twdtwTimeSeries 
 #' @examples
 #' # Classifying time series based on TWDTW results 
-#' ts = twdtwTimeSeries(example_ts.list)
-#' patt = twdtwTimeSeries(patterns.list)
+#' ts = twdtwTimeSeries(MOD13Q1.ts.list)
+#' patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 #' log_fun = logisticWeight(-0.1, 100)
 #' time_intervals = seq(from=as.Date("2007-09-01"), to=as.Date("2013-09-01"), by="6 month")
 #' mat = twdtwApply(x=ts, y=patt, weight.fun=log_fun, keep=TRUE)
@@ -79,7 +79,7 @@ setGeneric(name = "twdtwClassify",
 #' 
 #' \dontrun{
 #' require(parallel)
-#' best_mat = mclapply(as.list(mat), mc.cores=4, FUN=twdtwClassify, breaks=time_intervals, overlap=0.5)
+#' best_mat = mclapply(as.list(mat), mc.cores=2, FUN=twdtwClassify, breaks=time_intervals, overlap=0.5)
 #' best_mat = twdtwMatches(alignments=best_mat)
 #' }
 #' @export
@@ -110,8 +110,8 @@ setMethod("twdtwClassify", "twdtwMatches",
                       breaks = seq(from, to, paste(by,"month"))
                     }
                     breaks = as.Date(breaks)
-                  twdtwClassify.twdtwMatches(x, patterns.labels=patterns.labels, breaks=breaks, 
-                            overlap=overlap, thresholds=thresholds, fill=fill)
+                    twdtwClassify.twdtwMatches(x, patterns.labels=patterns.labels, breaks=breaks, 
+                              overlap=overlap, thresholds=thresholds, fill=fill)
            })
 
 #' @rdname twdtwClassify
@@ -119,7 +119,7 @@ setMethod("twdtwClassify", "twdtwMatches",
 #' @examples
 #' \dontrun{
 #' # Run TWDTW analysis for raster time series 
-#' patt = yearly_patterns_mt
+#' patt = MOD13Q1.MT.yearly.patterns
 #' evi = brick(system.file("lucc_MT/data/evi.tif", package="dtwSat"))
 #' ndvi = brick(system.file("lucc_MT/data/ndvi.tif", package="dtwSat"))
 #' red = brick(system.file("lucc_MT/data/red.tif", package="dtwSat"))
@@ -144,7 +144,8 @@ setMethod("twdtwClassify", "twdtwMatches",
 #' }
 setMethod("twdtwClassify", "twdtwRaster",
           function(x, patterns.labels=NULL, thresholds=Inf, fill=255, filepath, ...){
-                  if(is.null(patterns.labels)) patterns.labels = coverages(x)[-1]
+                  if(is.null(patterns.labels)) patterns.labels = coverages(x)
+                  patterns.labels = patterns.labels[!patterns.labels%in%"doy"]
                   if(missing(filepath)) filepath = if(fromDisk(x[[2]])){dirname(filename(x[[2]]))}else{NULL}
                   twdtwClassify.twdtwRaster(x, patterns.labels=patterns.labels, thresholds=thresholds, fill=fill, filepath=filepath, ...)
            })
@@ -180,7 +181,6 @@ twdtwClassify.twdtwMatches = function(x, patterns.labels, breaks, overlap, thres
     m = length(levels)
     n = length(breaks)-1
     aligs = lapply(as.list(x), FUN=.bestIntervals, m=m, n=n, levels=levels, breaks=breaks, overlap=overlap)
-    # res = lapply(as.list(x), FUN = classifyIntervals, patterns.labels, breaks, overlap, thresholds, fill)
     twdtwMatches(x@timeseries, patterns=x@patterns, alignments=aligs)
 }
 
