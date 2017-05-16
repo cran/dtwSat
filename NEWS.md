@@ -1,3 +1,13 @@
+# dtwSat v0.2.3
+
+* New features 
+
+  Register TWDTW as a distance function into package proxy 
+  
+* Fixing bugs
+
+  Fix typos in plot labels 
+
 # dtwSat v0.2.2 Release Notes
 
 * New features
