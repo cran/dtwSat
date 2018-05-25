@@ -9,6 +9,7 @@
 \alias{dim,twdtwRaster-method}
 \alias{res,twdtwRaster-method}
 \alias{extent,twdtwRaster-method}
+\alias{writeRaster,twdtwRaster,ANY-method}
 \alias{projection,twdtwRaster-method}
 \alias{ncol,twdtwRaster-method}
 \alias{nrow,twdtwRaster-method}
@@ -44,6 +45,8 @@
 \S4method{res}{twdtwRaster}(x)
 
 \S4method{extent}{twdtwRaster}(x, y, ...)
+
+\S4method{writeRaster}{twdtwRaster,ANY}(x, filepath = ".", ...)
 
 \S4method{projection}{twdtwRaster}(x)
 
@@ -179,7 +182,7 @@ red = brick(system.file("lucc_MT/data/red.tif", package="dtwSat"))
 nir = brick(system.file("lucc_MT/data/nir.tif", package="dtwSat"))
 mir = brick(system.file("lucc_MT/data/mir.tif", package="dtwSat"))
 doy = brick(system.file("lucc_MT/data/doy.tif", package="dtwSat"))
-rts = twdtwRaster(evi, ndvi, blue, red, nir, mir, timeline=timeline, doy=doy)
+rts = twdtwRaster(doy, evi, ndvi, blue, red, nir, mir, timeline = timeline)
 }
 }
 \seealso{

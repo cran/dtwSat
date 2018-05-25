@@ -1,3 +1,25 @@
+# dtwSat v0.2.4
+
+* New features 
+
+  Include the function twdtwApplyParallel for TWDTW parallel processing using the package snow 
+  
+  Include writeRaster for twdtwRaster class 
+  
+  Improve tests and documentation 
+  
+  Improve memory usage of twdtwApply 
+  
+  Improve memory usage and speed of twdtwClassify 
+  
+  Auto recognition of the argument "doy" to avoid naming the argument "doy = doy" 
+  
+* Fixing bugs
+  
+  Fix bug in twdtwAssess for class twdtwMatches 
+  
+  Fix bug in twdtwRaster 
+  
 # dtwSat v0.2.3
 
 * New features 

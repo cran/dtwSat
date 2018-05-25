@@ -2,11 +2,11 @@ Package: dtwSat
 Type: Package
 Title: Time-Weighted Dynamic Time Warping for Satellite Image Time
         Series Analysis
-Version: 0.2.3
-Date: 2017-05-07
-Authors@R: c(person('Victor', 'Maus', role = c('aut', 'cre'), email = 'vwmaus1@gmail.com'), 
-             person('Marius', 'Appel', role = c('ctb')),
-             person('Toni',   'Giorgino', role = c('ctb')))
+Version: 0.2.4
+Date: 2018-05-24
+Authors@R: c(person('Victor', 'Maus', role = c('aut', 'cre'), email = 'vwmaus1@gmail.com', comment = c(ORCID = "0000-0002-7385-4723")), 
+  person('Marius', 'Appel', role = c('ctb')),
+  person('Toni',   'Giorgino', role = c('ctb')))
 Description: Provides an implementation of the Time-Weighted Dynamic Time
     Warping (TWDTW) method for land cover mapping using satellite image time series.
     TWDTW is based on the Dynamic Time Warping technique and has achieved high
@@ -17,15 +17,15 @@ Description: Provides an implementation of the Time-Weighted Dynamic Time
     the TWDTW analysis for satellite datasets, visualize the results of the time
     series analysis, produce land cover maps, create temporal plots for land cover
     change, and compute accuracy assessment metrics.
-Depends: R (>= 3.2.0), zoo, raster, ggplot2
+Depends: R (>= 3.2.0), zoo, raster, snow, ggplot2
 Imports: methods, rgdal, dtw, proxy, scales, reshape2, grDevices,
         RColorBrewer, plyr, stats, sp, lubridate, caret, mgcv, xtable
-Suggests: testthat, knitr, rmarkdown, rticles, gridExtra, grid, png,
-        Hmisc, tikzDevice
+Suggests: knitr, rmarkdown, rticles, gridExtra, grid, png, Hmisc,
+        tikzDevice
 License: GPL (>= 2) | file LICENSE
 URL: https://github.com/vwmaus/dtwSat/
 BugReports: https://github.com/vwmaus/dtwSat/issues
-Author: Victor Maus [aut, cre],
+Author: Victor Maus [aut, cre] (<https://orcid.org/0000-0002-7385-4723>),
   Marius Appel [ctb],
   Toni Giorgino [ctb]
 Maintainer: Victor Maus <vwmaus1@gmail.com>
@@ -41,10 +41,11 @@ Collate: 'class-crossValidation.R' 'class-twdtwRaster.R'
         'plotCostMatrix.R' 'plotDistance.R' 'plotMapSamples.R'
         'plotMaps.R' 'plotMatches.R' 'plotPaths.R' 'plotPatterns.R'
         'plotTimeSeries.R' 'resampleTimeSeries.R' 'subset.R' 'twdtw.R'
-        'twdtwApply.R' 'twdtwAssess.R' 'twdtwClassify.R'
-        'twdtwCrossValidate.R' 'twdtwDist.R' 'twdtwXtable.R' 'zzz.R'
+        'twdtwApply.R' 'twdtwApplyParallel.R' 'twdtwAssess.R'
+        'twdtwClassify.R' 'twdtwCrossValidate.R' 'twdtwDist.R'
+        'twdtwXtable.R' 'zzz.R'
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2017-05-16 20:19:35 UTC; maus
+Packaged: 2018-05-24 19:08:35 UTC; victor
 Repository: CRAN
-Date/Publication: 2017-05-16 20:57:15 UTC
+Date/Publication: 2018-05-25 07:45:22 UTC
