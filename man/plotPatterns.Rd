@@ -10,7 +10,7 @@ plotPatterns(x, labels = NULL, attr, year = 2005)
 \item{x}{An object of class \code{\link[dtwSat]{twdtwTimeSeries}}, 
 \code{\link[zoo]{zoo}}, or list of \code{\link[zoo]{zoo}}.}
 
-\item{labels}{a vector with labels of the time series. If not declared 
+\item{labels}{A vector with labels of the time series. If not declared 
 the function will plot all time series.}
 
 \item{attr}{An \link[base]{integer} vector or \link[base]{character} vector 
@@ -18,7 +18,7 @@ indicating the attribute for plotting. If not declared the function will plot
 all attributes.}
 
 \item{year}{An integer. The base year to shift the dates of the time series to. 
-If NULL then it does not shif the time series. Default is 2005.}
+If NULL then the time series is not shifted. Default is 2005.}
 }
 \value{
 A \link[ggplot2]{ggplot} object.
@@ -31,6 +31,11 @@ patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 plotPatterns(patt)
 plotPatterns(patt, attr="evi")
 
+}
+\references{
+\insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwTimeSeries-class}} and 

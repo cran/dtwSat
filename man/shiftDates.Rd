@@ -23,7 +23,7 @@ shiftDates(object, year = NULL)
 \item{object}{\code{\link[dtwSat]{twdtwTimeSeries}} objects, 
 \code{\link[zoo]{zoo}} objects or a list of \code{\link[zoo]{zoo}} objects.}
 
-\item{year}{the base year to shit the time series.}
+\item{year}{the base year to shift the time series to.}
 }
 \value{
 An object of the same class as the input \code{object}.
@@ -38,6 +38,15 @@ npatt = shiftDates(patt, year=2005)
 index(patt)
 index(npatt)
 
+}
+\references{
+\insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
+
+\insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwTimeSeries-class}}

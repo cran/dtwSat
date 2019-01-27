@@ -17,7 +17,7 @@
 \usage{
 \S4method{twdtwAssess}{twdtwRaster}(object, y, labels = NULL,
   id.labels = NULL, proj4string = NULL, conf.int = 0.95,
-  rm.nosample = TRUE)
+  rm.nosample = FALSE, start_date = NULL)
 
 \S4method{twdtwAssess}{data.frame}(object, area, conf.int = 0.95,
   rm.nosample = TRUE)
@@ -32,36 +32,39 @@
   rm.nosample = TRUE)
 }
 \arguments{
-\item{object}{an object of class \code{\link[dtwSat]{twdtwRaster}} resulting from 
+\item{object}{An object of class \code{\link[dtwSat]{twdtwRaster}} resulting from 
 the classification, i.e. \code{\link[dtwSat]{twdtwClassify}}.
-The argument can also receive an error matrix (confusion matrix) in using the classes 
+The argument can also receive an error matrix (confusion matrix) using the classes 
 \code{\link[base]{data.frame}} or \code{\link[base]{table}}. In this case the user 
-must inform the area for each class to the argument \code{area}.}
+must provide the area for each class to the argument \code{area}.}
 
-\item{y}{a \code{\link[base]{data.frame}} whose attributes are: longitude, 
+\item{y}{A \code{\link[base]{data.frame}} whose attributes are: longitude, 
 latitude, the start ''from'' and the end ''to'' of the time interval 
 for each sample. This can also be a \code{\link[sp]{SpatialPointsDataFrame}} 
 whose attributes are the start ''from'' and the end ''to'' of the time interval.
 If missing ''from'' and/or ''to'', they are set to the time range of the 
 \code{object}.}
 
-\item{labels}{character vector with time series labels. For signature 
+\item{labels}{Character vector with time series labels. For signature 
 \code{\link[dtwSat]{twdtwRaster}} this argument can be used to set the 
 labels for each sample in \code{y}, or it can be combined with \code{id.labels} 
 to select samples with a specific label.}
 
-\item{id.labels}{a numeric or character with an column name from \code{y} to 
+\item{id.labels}{A numeric or character with an column name from \code{y} to 
 be used as samples labels. Optional.}
 
-\item{proj4string}{projection string, see \code{\link[sp]{CRS-class}}. Used 
+\item{proj4string}{Projection string, see \code{\link[sp]{CRS-class}}. Used 
 if \code{y} is a \code{\link[base]{data.frame}}.}
 
-\item{conf.int}{specifies the confidence level (0-1).}
+\item{conf.int}{Specifies the confidence level (0-1).}
 
-\item{rm.nosample}{if sum of columns and sum of rows of the error matrix are zero 
+\item{rm.nosample}{If sum of columns and sum of rows of the error matrix are zero 
 then remove class. Default is TRUE.}
 
-\item{area}{a numeric vector with the area for each class if the argument \code{object}
+\item{start_date}{A date. Required if there is only one map to be assessed. Usually this is the 
+first date of the timeline from satellite images.}
+
+\item{area}{A numeric vector with the area for each class if the argument \code{object}
 is an error matrix (confusion matrix). If \code{object} is \code{\link[dtwSat]{twdtwMatches}} 
 area can be either a vector with the area of each classified object, or a single number 
 if the objects are single pixels.}
@@ -70,8 +73,9 @@ if the objects are single pixels.}
 Performs an accuracy assessment 
 of the classified maps. The function returns Overall Accuracy, 
 User's Accuracy, Produce's Accuracy, error matrix (confusion matrix),
-and estimated area according to [1-2]. The function returns the metrics 
-for each time interval and a summary considering all classified intervals.
+and estimated area according to \insertCite{Olofsson:2013,Olofsson:2014;textual}{dtwSat}. 
+The function returns the metrics for each time interval and a summary considering all 
+classified intervals.
 }
 \examples{
 \dontrun{
@@ -139,7 +143,7 @@ plot(r_lucc, type = "map")
 # Assess classification 
 twdtw_assess <- 
   twdtwAssess(object = r_lucc, y = validation_samples, 
-              proj4string = proj_str, conf.int = .95, rm.nosample = TRUE) 
+              proj4string = proj_str, conf.int = .95) 
 
 # Plot map accuracy 
 plot(twdtw_assess, type = "accuracy")
@@ -219,26 +223,43 @@ training_ts <- getTimeSeries(rts, y = training_samples, proj4string = proj_str)
 validation_ts <- getTimeSeries(rts, y = validation_samples, proj4string = proj_str)
 
 # Create temporal patterns 
-temporal_patterns = createPatterns(training_ts, freq = 8, formula = y ~ s(x))
+temporal_patterns <- createPatterns(training_ts, freq = 8, formula = y ~ s(x))
 
 # Set TWDTW weight function 
 log_fun <- logisticWeight(-0.1, 50)
 
 # Run serial TWDTW analysis 
-r_twdtw <- twdtwApply(x = validation_ts, 
-                     y = temporal_patterns, weight.fun = log_fun)
+r_twdtw <-
+  twdtwApply(x = rts, y = temporal_patterns, weight.fun = log_fun, progress = 'text')
+
+# or Run parallel TWDTW analysis
+beginCluster()
+r_twdtw <- 
+  twdtwApplyParallel(x = rts, y = temporal_patterns, weight.fun = log_fun, progress = 'text')
+endCluster()
+
+# Plot TWDTW distances for the first year 
+plot(r_twdtw, type = "distance", time.levels = 1)
 
 # Classify raster based on the TWDTW analysis 
-r_lucc <- twdtwClassify(x = r_twdtw, overlap = 0.5)
+r_lucc <- twdtwClassify(r_twdtw, progress = 'text')
 
-# Accuracy assessment 
-twdtw_assess <- twdtwAssess(r_lucc, area = 53664.67, conf.int = .95)
+# Plot TWDTW classification results 
+plot(r_lucc, type = "map")
+
+# Assess classification 
+twdtw_assess <- 
+  twdtwAssess(object = r_lucc, y = validation_samples, 
+              proj4string = proj_str, conf.int = .95) 
 
 # Plot map accuracy 
 plot(twdtw_assess, type = "accuracy")
 
 # Plot area uncertainty 
 plot(twdtw_assess, type = "area")
+
+# Plot misclassified samples  
+plot(twdtw_assess, type = "map", samples = "incorrect") 
 
 # Get latex table with error matrix 
 twdtwXtable(twdtw_assess, table.type = "matrix")
@@ -250,16 +271,14 @@ twdtwXtable(twdtw_assess, table.type = "accuracy")
 twdtwXtable(twdtw_assess, table.type = "area")
 
 }
+
 }
 \references{
-[1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013). 
-Making better use of accuracy data in land change studies: Estimating 
-accuracy and area and quantifying uncertainty using stratified estimation. 
-Remote Sensing of Environment, 129, pp.122-131.
+\insertAllCited{}
 
-[2] Olofsson, P., Foody G.M., Herold M., Stehman, S.V., Woodcock, C.E., Wulder, M.A. (2014)
-Good practices for estimating area and assessing accuracy of land change. Remote Sensing of 
-Environment, 148, pp. 42-57.
+  \insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwClassify}},  

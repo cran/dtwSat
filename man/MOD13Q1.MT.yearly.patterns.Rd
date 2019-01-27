@@ -3,7 +3,7 @@
 \docType{data}
 \name{MOD13Q1.MT.yearly.patterns}
 \alias{MOD13Q1.MT.yearly.patterns}
-\title{Data: patterns time series}
+\title{Data: Pattern time series}
 \format{A \link[dtwSat]{twdtwTimeSeries} object.}
 \usage{
 MOD13Q1.MT.yearly.patterns
@@ -12,17 +12,19 @@ MOD13Q1.MT.yearly.patterns
 This dataset has a list of patterns with the phenological cycle of: Water,
 Cotton-Fallow, Forest, Low vegetation, Pasture, Soybean-Cotton, Soybean-Maize, Soybean-Millet, 
 Soybean-Sunflower, and Wetland. These time series are based on the MODIS product 
-MOD13Q1 250 m 16 days [1]. The patterns were build from ground truth samples of each 
+MOD13Q1 250 m 16 days \insertCite{Didan:2015}{dtwSat}. 
+The patterns were built from ground truth samples of each 
 crop using Generalized Additive Models (GAM), see \link[dtwSat]{createPatterns}.
 }
 \references{
-[1] Friedl MA, Sulla-Menashe D, Tan B, Schneider A, Ramankutty N, Sibley A, Huang X. (2010).
-MODIS Collection 5 global land cover: Algorithm refinements and characterization of new
-datasets. Remote Sensing of Environment, 114(1), 168 182.
+\insertAllCited{}
+  
+  \insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
 }
 \seealso{
-MOD13Q1 documentation: See 
-\url{https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1_v006}.
+For details about MOD13Q1 see \insertCite{Didan:2015}{dtwSat}.
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}

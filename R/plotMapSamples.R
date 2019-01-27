@@ -5,9 +5,9 @@
 #' @description Method for plotting maps and samples.
 #' 
 #' @param x An object of class \code{\link[dtwSat]{twdtwAssessment}}.
-#' @param samples a character defining the samples to plot 
+#' @param samples A character defining the samples to plot 
 #' "correct", "incorrect", "all". Default is "all".
-#' @param ... other arguments to pass to \code{\link[dtwSat]{twdtwRaster}}
+#' @param ... Other arguments to pass to \code{\link[dtwSat]{twdtwRaster}}
 #' 
 #' @return A \link[ggplot2]{ggplot} object.
 #' 
@@ -16,6 +16,11 @@
 #' \code{\link[dtwSat]{plotAccuracy}}, and
 #' \code{\link[dtwSat]{plotAdjustedArea}}.
 #'  
+#' @references
+#'   \insertRef{Maus:2019}{dtwSat}
+#'   
+#'   \insertRef{Maus:2016}{dtwSat}
+#'   
 #' @example examples/test_twdtw_raster_analysis.R
 #' @export
 plotMapSamples = function(x, samples="all", ...){

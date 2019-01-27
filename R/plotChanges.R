@@ -30,7 +30,7 @@
 #' @param class.labels A \link[base]{character} or \link[base]{numeric}
 #' vector with the labels of the raster values. It must have the same 
 #' length as class.levels. Default is NULL.
-#' @param class.colors a set of aesthetic values. It must have the same 
+#' @param class.colors A set of aesthetic values. It must have the same 
 #' length as class.levels. Default is NULL. See 
 #' \link[ggplot2]{scale_fill_manual} for details.
 #' 
@@ -43,6 +43,11 @@
 #' \code{\link[dtwSat]{plotMaps}}, and
 #' \code{\link[dtwSat]{plotDistance}}.
 #'  
+#' @references
+#'   \insertRef{Maus:2019}{dtwSat}
+#'   
+#'   \insertRef{Maus:2016}{dtwSat}
+#'   
 #' @examples
 #' \dontrun{
 #' # Run TWDTW analysis for raster time series 
@@ -77,7 +82,7 @@ plotChanges = function(x, time.levels=NULL, time.labels=NULL, class.levels=NULL,
 .plotChanges = function(x, time.levels, time.labels, class.levels, class.labels, class.colors){
 
   if(length(time.levels)<2)
-    stop("the length of time.levels is shorter than two")
+    stop("The length of time.levels is shorter than two")
   
   df = do.call("rbind", lapply(seq_along(time.levels)[-1], function(l){
     from = raster::subset(x=x, subset=time.levels[l-1])[]

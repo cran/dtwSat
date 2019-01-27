@@ -21,9 +21,9 @@
 #' 
 #' 
 #' @param x An object of class \code{\link[dtwSat]{twdtwMatches}}.
-#' @param timeseries.labels the label or index of the time series.
+#' @param timeseries.labels The label or index of the time series.
 #' Default is 1. 
-#' @param patterns.labels a vector with labels of the patterns. If not 
+#' @param patterns.labels A vector with labels of the patterns. If not 
 #' declared the function will plot one alignment for each pattern.
 #' @param matrix.name A character. The name of the matrix to plot,
 #' "costMatrix" for accumulated cost, "localMatrix" for local cost, 
@@ -39,6 +39,11 @@
 #' \code{\link[dtwSat]{plotMatches}}, and
 #' \code{\link[dtwSat]{plotClassification}}.
 #' 
+#' @references
+#'   \insertRef{Maus:2019}{dtwSat}
+#'   
+#'   \insertRef{Maus:2016}{dtwSat}
+#'   
 #' @examples
 #' log_fun = logisticWeight(-0.1, 100)
 #' ts = twdtwTimeSeries(MOD13Q1.ts.list)
@@ -65,7 +70,7 @@ plotCostMatrix = function(x, timeseries.labels=NULL, patterns.labels=NULL, matri
   ## Get data
   internals = getInternals(x)[[1]]
   if(any(sapply(internals, function(x) length(x$internals))<1))
-    stop("plot methods requires internals, set keep=TRUE on twdtwApply() call")
+    stop("Plot methods requires internals, set keep=TRUE on twdtwApply() call")
   ts = getTimeSeries(x)[[1]]
   patterns = getPatterns(x)
   

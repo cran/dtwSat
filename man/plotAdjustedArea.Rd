@@ -4,8 +4,8 @@
 \alias{plotAdjustedArea}
 \title{Plotting area and uncertainty}
 \usage{
-plotAdjustedArea(x, perc = TRUE, time.labels = NULL, category.name = NULL,
-  category.type = NULL)
+plotAdjustedArea(x, perc = TRUE, time.labels = NULL,
+  category.name = NULL, category.type = NULL)
 }
 \arguments{
 \item{x}{An object of class \code{\link[dtwSat]{twdtwAssessment}} or 
@@ -19,10 +19,10 @@ aggregate all classified periods in the same plot. Default is NULL. Used
 if \code{x} is \code{\link[dtwSat]{twdtwAssessment}}.}
 
 \item{category.name}{a character vector defining the class names. If NULL
-then use the classe names in the object \code{x}. Default is NULL.}
+the class names in the object \code{x} are used. Default is NULL.}
 
 \item{category.type}{a character defining the categories type "numeric" 
-or "letter", if NULL then use the class names. Default is NULL.}
+or "letter", if NULL the class names are used. Default is NULL.}
 }
 \value{
 A \link[ggplot2]{ggplot} object.
@@ -41,6 +41,11 @@ plotAdjustedArea(twdtw_assess, category.type="letter")
 
 }
 
+}
+\references{
+\insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwAssessment}} and \code{\link[dtwSat]{twdtwAssess}}

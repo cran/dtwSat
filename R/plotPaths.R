@@ -21,9 +21,9 @@
 #' 
 #' 
 #' @param x An object of class \code{\link[dtwSat]{twdtwMatches}}.
-#' @param timeseries.labels the label or index of the time series.
+#' @param timeseries.labels The label or index of the time series.
 #' Default is 1. 
-#' @param patterns.labels a vector with labels of the patterns. If not 
+#' @param patterns.labels A vector with labels of the patterns. If not 
 #' declared the function will plot one alignment for each pattern.
 #' @param k A positive integer. The index of the last alignment to include in 
 #' the plot. If not declared the function will plot all low cost paths. 
@@ -37,6 +37,11 @@
 #' \code{\link[dtwSat]{plotCostMatrix}},
 #' \code{\link[dtwSat]{plotMatches}}, and
 #' \code{\link[dtwSat]{plotClassification}}.
+#' 
+#' @references
+#'   \insertRef{Maus:2019}{dtwSat}
+#'   
+#'   \insertRef{Maus:2016}{dtwSat}
 #' 
 #' @examples
 #' log_fun = logisticWeight(-0.1, 100)
@@ -58,7 +63,7 @@ plotPaths = function(x, timeseries.labels=NULL, patterns.labels=NULL, k=NULL){
   ## Get data
   internals = getInternals(x)[[1]]
   if(any(sapply(internals, function(x) length(x$internals))<1))
-    stop("plot methods requires internals, set keep=TRUE on twdtwApply() call")
+    stop("Plot methods requires internals, set keep=TRUE on twdtwApply() call")
   matching = getMatches(x)[[1]]
   ts = getTimeSeries(x)[[1]]
   patterns = getPatterns(x)

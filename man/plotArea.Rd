@@ -4,8 +4,9 @@
 \alias{plotArea}
 \title{Plotting accumulated area}
 \usage{
-plotArea(x, time.levels = NULL, time.labels = NULL, class.levels = NULL,
-  class.labels = NULL, class.colors = NULL, perc = TRUE)
+plotArea(x, time.levels = NULL, time.labels = NULL,
+  class.levels = NULL, class.labels = NULL, class.colors = NULL,
+  perc = TRUE)
 }
 \arguments{
 \item{x}{An object of class \code{\link[dtwSat]{twdtwRaster}}.}
@@ -52,7 +53,7 @@ doy = brick(system.file("lucc_MT/data/doy.tif", package="dtwSat"))
 timeline = scan(system.file("lucc_MT/data/timeline", package="dtwSat"), what="date")
 rts = twdtwRaster(evi, ndvi, red, blue, nir, mir, timeline = timeline, doy = doy)
 
-# Read fiels samples 
+# Read field samples 
 field_samples = read.csv(system.file("lucc_MT/data/samples.csv", package="dtwSat"))
 proj_str = scan(system.file("lucc_MT/data/samples_projection", 
                 package="dtwSat"), what = "character")
@@ -81,6 +82,11 @@ plotArea(r_lucc)
 plotArea(r_lucc, perc=FALSE)
 
 }
+}
+\references{
+\insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwRaster-class}},

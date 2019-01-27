@@ -9,10 +9,10 @@ plotMapSamples(x, samples = "all", ...)
 \arguments{
 \item{x}{An object of class \code{\link[dtwSat]{twdtwAssessment}}.}
 
-\item{samples}{a character defining the samples to plot 
+\item{samples}{A character defining the samples to plot 
 "correct", "incorrect", "all". Default is "all".}
 
-\item{...}{other arguments to pass to \code{\link[dtwSat]{twdtwRaster}}}
+\item{...}{Other arguments to pass to \code{\link[dtwSat]{twdtwRaster}}}
 }
 \value{
 A \link[ggplot2]{ggplot} object.
@@ -86,7 +86,7 @@ plot(r_lucc, type = "map")
 # Assess classification 
 twdtw_assess <- 
   twdtwAssess(object = r_lucc, y = validation_samples, 
-              proj4string = proj_str, conf.int = .95, rm.nosample = TRUE) 
+              proj4string = proj_str, conf.int = .95) 
 
 # Plot map accuracy 
 plot(twdtw_assess, type = "accuracy")
@@ -108,6 +108,11 @@ twdtwXtable(twdtw_assess, table.type = "area")
 
 }
 
+}
+\references{
+\insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwAssessment}},

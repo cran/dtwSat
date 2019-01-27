@@ -45,6 +45,11 @@
 #' \code{\link[dtwSat]{plotChanges}}, and
 #' \code{\link[dtwSat]{plotDistance}}.
 #'  
+#' @references
+#'   \insertRef{Maus:2019}{dtwSat}
+#'   
+#'   \insertRef{Maus:2016}{dtwSat}
+#'   
 #' @examples
 #' \dontrun{
 #' 
@@ -59,7 +64,7 @@
 #' timeline = scan(system.file("lucc_MT/data/timeline", package="dtwSat"), what="date")
 #' rts = twdtwRaster(evi, ndvi, red, blue, nir, mir, timeline = timeline, doy = doy)
 #' 
-#' # Read fiels samples 
+#' # Read field samples 
 #' field_samples = read.csv(system.file("lucc_MT/data/samples.csv", package="dtwSat"))
 #' proj_str = scan(system.file("lucc_MT/data/samples_projection", 
 #'                 package="dtwSat"), what = "character")

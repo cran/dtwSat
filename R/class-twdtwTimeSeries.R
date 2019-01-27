@@ -17,7 +17,7 @@
 #' @aliases twdtwTimeSeries
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #'
-#' @description Class for set of irregular time series.
+#' @description Class for setting irregular time series.
 #' 
 #' @param ... \code{\link[dtwSat]{twdtwTimeSeries}} objects, 
 #' \code{\link[zoo]{zoo}} objects or a list of \code{\link[zoo]{zoo}} objects.
@@ -37,8 +37,13 @@
 #' \code{\link[dtwSat]{getTimeSeries}}, and
 #' \code{\link[dtwSat]{twdtwApply}}
 #'
+#' @references
+#'   \insertRef{Maus:2019}{dtwSat}
+#'   
+#'   \insertRef{Maus:2016}{dtwSat}
+#'
 #' @examples 
-#' # Creating new object of class twdtwTimeSeries  
+#' # Creating a new object of class twdtwTimeSeries  
 #' ptt = new("twdtwTimeSeries", timeseries = MOD13Q1.patterns.list, 
 #'            labels = names(MOD13Q1.patterns.list))
 #' class(ptt)

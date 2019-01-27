@@ -8,29 +8,30 @@
 \title{Apply TWDTW analysis to twdtwRaster using parallel processing}
 \usage{
 twdtwApplyParallel(x, y, resample = TRUE, length = NULL,
-  weight.fun = NULL, dist.method = "Euclidean", step.matrix = symmetric1,
-  n = NULL, span = NULL, min.length = 0, theta = 0.5, ...)
+  weight.fun = NULL, dist.method = "Euclidean",
+  step.matrix = symmetric1, n = NULL, span = NULL, min.length = 0,
+  theta = 0.5, ...)
 
-\S4method{twdtwApplyParallel}{twdtwRaster}(x, y, resample, length, weight.fun,
-  dist.method, step.matrix, n, span, min.length, theta, breaks = NULL,
-  from = NULL, to = NULL, by = NULL, overlap = 0.5, filepath = "",
-  ...)
+\S4method{twdtwApplyParallel}{twdtwRaster}(x, y, resample, length,
+  weight.fun, dist.method, step.matrix, n, span, min.length, theta,
+  breaks = NULL, from = NULL, to = NULL, by = NULL,
+  overlap = 0.5, filepath = "", ...)
 }
 \arguments{
-\item{x}{an object of class twdtw*. This is the target time series. 
+\item{x}{An object of class twdtw*. This is the target time series. 
 Usually, it is a set of unclassified time series.}
 
-\item{y}{an object of class \link[dtwSat]{twdtwTimeSeries}. 
+\item{y}{An object of class \link[dtwSat]{twdtwTimeSeries}. 
 The temporal patterns.}
 
-\item{resample}{resample the patterns to have the same length. Default is TRUE.
+\item{resample}{Resample the patterns to have the same length. Default is TRUE.
 See \link[dtwSat]{resampleTimeSeries} for details.}
 
-\item{length}{An integer. Patterns length used with \code{patterns.length}. 
+\item{length}{An integer. Length of patterns used with \code{patterns.length}. 
 If not declared the length of the output patterns will be the length of 
 the longest pattern.}
 
-\item{weight.fun}{A function. Any function that receive and performs a 
+\item{weight.fun}{A function. Any function that receives and performs a 
 computation on a matrix. The function receives a matrix of time differences 
 in days and returns a matrix of time-weights. If not declared the time-weight 
 is zero. In this case the function runs the standard version of the dynamic 
@@ -40,26 +41,27 @@ time warping. See details.}
 Default is ''Euclidean'' see \code{\link[proxy]{dist}} in package 
 \pkg{proxy}.}
 
-\item{step.matrix}{see \code{\link[dtw]{stepPattern}} in package \pkg{dtw} [2].}
+\item{step.matrix}{See \code{\link[dtw]{stepPattern}} in package \pkg{dtw} 
+\insertCite{Giorgino:2009}{dtwSat}.}
 
 \item{n}{An integer. The maximun number of matches to perform. 
 NULL will return all matches.}
 
 \item{span}{A number. Span between two matches, \emph{i.e.} the minimum
-interval between two matches, for details see [3]. If not declared it removes
-all overlapping matches of the same pattern. To include overlapping matches 
-of the same pattern use \code{span=0}.}
+interval between two matches; for details see \insertCite{Muller:2007}{dtwSat}. 
+If not declared it removes all overlapping matches of the same pattern. To include 
+overlapping matches of the same pattern use \code{span=0}.}
 
-\item{min.length}{A number between 0 an 1. This argument removes the over fittings.
+\item{min.length}{A number between 0 an 1. This argument removes overfittings.
 Minimum length after warping. Percentage of the original pattern length. Default is 0.5, 
 meaning that the matching cannot be shorter than half of the pattern length.}
 
-\item{theta}{numeric between 0 and 1. The weight of the time 
+\item{theta}{Numeric between 0 and 1. The weight of the time 
 for the TWDTW computation. Use \code{theta=0} to cancel the time-weight, 
 \emph{i.e.} to run the original DTW algorithm. Default is 0.5, meaning that 
 the time has the same weight as the curve shape in the TWDTW analysis.}
 
-\item{...}{arguments to pass to \code{\link[raster]{writeRaster}} and 
+\item{...}{Arguments to pass to \code{\link[raster]{writeRaster}} and 
 \code{\link[raster]{pbCreate}}}
 
 \item{breaks}{A vector of class \code{\link[base]{Dates}}. This replaces the arguments \code{from},
@@ -69,13 +71,13 @@ the time has the same weight as the curve shape in the TWDTW analysis.}
 
 \item{to}{A \code{\link[base]{character}} or \code{\link[base]{Dates}} object in the format "yyyy-mm-dd".}
 
-\item{by}{A \code{\link[base]{character}} with the intevals size, \emph{e.g.} "6 month".}
+\item{by}{A \code{\link[base]{character}} with the interval size, \emph{e.g.} "6 month".}
 
 \item{overlap}{A number between 0 and 1. The minimum overlapping 
 between one match and the interval of classification. Default is 0.5, 
 \emph{i.e.} an overlap minimum of 50\%.}
 
-\item{filepath}{A character. The path to save the raster with results. If not informed the 
+\item{filepath}{A character. The path at which to save the raster with results. If not provided the 
 function saves in the current work directory.}
 }
 \value{
@@ -84,16 +86,17 @@ An object of class twdtwRaster.
 \description{
 This function performs a multidimensional Time-Weighted DTW 
 analysis and retrieves the matches between the temporal patterns and 
-a set of time series [1].
+a set of time series \insertCite{Maus:2019}{dtwSat}.
 }
 \details{
 The linear \code{linearWeight} and \code{logisticWeight} weight functions 
 can be passed to \code{twdtwApply} through the argument \code{weight.fun}. This will 
 add a time-weight to the dynamic time warping analysis. The time weight 
-creates a global constraint useful to analyse time series with phenological cycles
-of vegetation that are usually bound to seasons. In previous studies by [1] the 
-logistic weight had better results than the linear for land cover classification. 
-See [1] for details about the method.
+creates a global constraint useful for analysing time series with phenological cycles
+of vegetation that are usually bound to seasons. In previous studies by 
+\insertCite{Maus:2016}{dtwSat} the logistic weight had better results than the 
+linear for land cover classification. 
+See \insertCite{Maus:2016,Maus:2019}{dtwSat} for details about the method.
 }
 \examples{
 \dontrun{
@@ -161,7 +164,7 @@ plot(r_lucc, type = "map")
 # Assess classification 
 twdtw_assess <- 
   twdtwAssess(object = r_lucc, y = validation_samples, 
-              proj4string = proj_str, conf.int = .95, rm.nosample = TRUE) 
+              proj4string = proj_str, conf.int = .95) 
 
 # Plot map accuracy 
 plot(twdtw_assess, type = "accuracy")
@@ -185,16 +188,7 @@ twdtwXtable(twdtw_assess, table.type = "area")
 
 }
 \references{
-[1] Maus  V,  Camara  G,  Cartaxo  R,  Sanchez  A,  Ramos  FM,  de Queiroz, GR.
-(2016). A Time-Weighted Dynamic Time Warping method for land use and land cover 
-mapping. IEEE Journal of Selected Topics in Applied Earth Observations and Remote 
-Sensing, vol.9, no.8, pp.3729-3739.
-
-[2] Giorgino, T. (2009). Computing and Visualizing Dynamic Time Warping Alignments in R: 
-The dtw Package. Journal of Statistical Software, 31, 1-24.
-
-[3] Muller, M. (2007). Dynamic Time Warping. In Information Retrieval for Music 
-and Motion (pp. 79-84). London: Springer London, Limited.
+\insertAllCited{}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwRaster-class}}, and 

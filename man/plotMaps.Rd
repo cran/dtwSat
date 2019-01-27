@@ -4,8 +4,8 @@
 \alias{plotMaps}
 \title{Plotting maps}
 \usage{
-plotMaps(x, time.levels = NULL, time.labels = NULL, class.levels = NULL,
-  class.labels = NULL, class.colors = NULL)
+plotMaps(x, time.levels = NULL, time.labels = NULL,
+  class.levels = NULL, class.labels = NULL, class.colors = NULL)
 }
 \arguments{
 \item{x}{An object of class \code{\link[dtwSat]{twdtwRaster}}.}
@@ -25,7 +25,7 @@ vector with the levels of the raster values. Default is NULL.}
 vector with the labels of the raster values. It must have the same 
 length as class.levels. Default is NULL.}
 
-\item{class.colors}{a set of aesthetic values. It must have the same 
+\item{class.colors}{A set of aesthetic values. It must have the same 
 length as class.levels. Default is NULL. See 
 \link[ggplot2]{scale_fill_manual} for details.}
 }
@@ -61,6 +61,11 @@ r_lucc = twdtwClassify(r_twdtw, format="GTiff", overwrite=TRUE)
 plotMaps(r_lucc)
 
 }
+}
+\references{
+\insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwRaster-class}},

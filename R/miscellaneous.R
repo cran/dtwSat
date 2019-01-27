@@ -2,12 +2,12 @@
 #' @title Get dates from year and day of the year
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' 
-#' @description This function retrieves the date corresponding to the ginven 
+#' @description This function retrieves the date corresponding to the given 
 #' year and day of the year.
 #' 
-#' @param year An vector with the years.
-#' @param doy An vector with the day of the year. 
-#' It must have the same lenght as \code{year}.
+#' @param year A vector with the years.
+#' @param doy A vector with the day of the year. 
+#' It must have the same length as \code{year}.
 #' 
 #' @docType methods
 #' 
@@ -15,6 +15,11 @@
 #' 
 #' @seealso \link[dtwSat]{shiftDates} 
 #' 
+#' @references
+#'   \insertRef{Maus:2019}{dtwSat}
+#'   
+#'   \insertRef{Maus:2016}{dtwSat}
+#'   
 #' @examples
 #' year = c(2000, 2001)
 #' doy = c(366, 365)
@@ -41,18 +46,29 @@ getDatesFromDOY = function(year, doy){
 #' @param object \code{\link[dtwSat]{twdtwTimeSeries}} objects, 
 #' \code{\link[zoo]{zoo}} objects or a list of \code{\link[zoo]{zoo}} objects.
 #' 
-#' @param year the base year to shit the time series. 
+#' @param year the base year to shift the time series to. 
 #' 
 #' @seealso 
 #' \code{\link[dtwSat]{twdtwTimeSeries-class}}
 #'
 #' @return An object of the same class as the input \code{object}. 
 #'
+#' @references
+#'   \insertRef{Maus:2019}{dtwSat}
+#'   
+#'   \insertRef{Maus:2016}{dtwSat}
+#'   
 #' @export
 setGeneric("shiftDates", function(object, year=NULL) standardGeneric("shiftDates"))
 
 #' @rdname shiftDates
 #' @aliases shiftDates-twdtwTimeSeries
+#' 
+#' @references
+#'   \insertRef{Maus:2019}{dtwSat}
+#'   
+#'   \insertRef{Maus:2016}{dtwSat}
+#'   
 #' @examples
 #' patt = twdtwTimeSeries(MOD13Q1.patterns.list)
 #' npatt = shiftDates(patt, year=2005)
@@ -109,7 +125,7 @@ shiftDates.twdtwTimeSeries = function(x, year){
   if(!is.null(id.labels) & !is.null(labels)){
     I = which(!is.na(match(as.character(y$label), as.character(labels))))
     if(length(I)<1) 
-      stop("there is no matches between id.labels and labels")
+      stop("There are no matches between id.labels and labels")
   } else if(!is.null(labels)) { 
     y$label = as.character(labels)
   }

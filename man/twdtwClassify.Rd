@@ -12,17 +12,17 @@
 twdtwClassify(x, ...)
 
 \S4method{twdtwClassify}{twdtwMatches}(x, patterns.labels = NULL,
-  from = NULL, to = NULL, by = NULL, breaks = NULL, overlap = 0.5,
-  thresholds = Inf, fill = "unclassified")
+  from = NULL, to = NULL, by = NULL, breaks = NULL,
+  overlap = 0.5, thresholds = Inf, fill = "unclassified")
 
 \S4method{twdtwClassify}{twdtwRaster}(x, patterns.labels = NULL,
   thresholds = Inf, fill = 255, filepath = "", ...)
 }
 \arguments{
-\item{x}{an object of class twdtw*. This is the target time series. 
+\item{x}{An object of class twdtw*. This is the target time series. 
 Usually, it is a set of unclassified time series.}
 
-\item{...}{arguments to pass to specifique methods for each twdtw* class 
+\item{...}{Arguments to pass to specific methods for each twdtw* class 
 and other arguments to pass to \code{\link[raster]{writeRaster}} and 
 \code{\link[raster]{pbCreate}}.}
 
@@ -32,7 +32,7 @@ and other arguments to pass to \code{\link[raster]{writeRaster}} and
 
 \item{to}{A \code{\link[base]{character}} or \code{\link[base]{Dates}} object in the format "yyyy-mm-dd".}
 
-\item{by}{A \code{\link[base]{character}} with the intevals size, \emph{e.g.} "6 month".}
+\item{by}{A \code{\link[base]{character}} with the interval size, \emph{e.g.} "6 month".}
 
 \item{breaks}{A vector of class \code{\link[base]{Dates}}. This replaces the arguments \code{from},
 \code{to}, and \code{by}.}
@@ -45,12 +45,12 @@ between one match and the interval of classification. Default is 0.5,
 The TWDTW dissimilarity thresholds, i.e. the maximum TWDTW cost for consideration 
 in the classification. Default is \code{Inf} for all \code{patterns.labels}.}
 
-\item{fill}{a character or value to fill the classification gaps. 
-For signature \code{twdtwTimeSeries} the default is \code{fill="unclassified"}, and 
+\item{fill}{A character to fill the classification gaps. 
+For signature \code{twdtwTimeSeries} the default is \code{fill="unclassified"}, 
 for signature \code{twdtwRaster} the default is \code{fill="unclassified"}.}
 
-\item{filepath}{A character. The path to save the raster with results. If not informed the 
-function saves in the same directory as the input time series raster.}
+\item{filepath}{A character. The path at which to save the raster with results. 
+If not provided the function saves in the same directory as the input time series raster.}
 }
 \value{
 An object of class twdtw*.
@@ -60,75 +60,6 @@ This function classifies the intervals of a time series
 based on the TWDTW results.
 }
 \examples{
-\dontrun{
-  
-# Example of TWDTW analysis using raster files 
-library(dtwSat)
-library(caret) 
-
-# Load raster data 
-evi  <- brick(system.file("lucc_MT/data/evi.tif",  package = "dtwSat"))
-ndvi <- brick(system.file("lucc_MT/data/ndvi.tif", package = "dtwSat"))
-red  <- brick(system.file("lucc_MT/data/red.tif",  package = "dtwSat"))
-blue <- brick(system.file("lucc_MT/data/blue.tif", package = "dtwSat"))
-nir  <- brick(system.file("lucc_MT/data/nir.tif",  package = "dtwSat"))
-mir  <- brick(system.file("lucc_MT/data/mir.tif",  package = "dtwSat"))
-doy  <- brick(system.file("lucc_MT/data/doy.tif",  package = "dtwSat"))
-timeline <- 
-  scan(system.file("lucc_MT/data/timeline", package = "dtwSat"), what="date")
-
-# Create raster time series 
-rts <- twdtwRaster(evi, ndvi, red, blue, nir, mir, timeline = timeline, doy = doy)
-
-# Load field samples and projection 
-field_samples <- 
-  read.csv(system.file("lucc_MT/data/samples.csv", package = "dtwSat"))
-proj_str <- 
-  scan(system.file("lucc_MT/data/samples_projection", package = "dtwSat"), 
-       what = "character")
-
-# Split samples for training (10\%) and validation (90\%) using stratified sampling 
-set.seed(1)
-I <- unlist(createDataPartition(field_samples$label, p = 0.1))
-training_samples <- field_samples[I, ]
-validation_samples <- field_samples[-I, ]
-
-# Get time series form raster
-training_ts <- getTimeSeries(rts, y = training_samples, proj4string = proj_str)
-validation_ts <- getTimeSeries(rts, y = validation_samples, proj4string = proj_str)
-
-# Create temporal patterns 
-temporal_patterns = createPatterns(training_ts, freq = 8, formula = y ~ s(x))
-
-# Set TWDTW weight function 
-log_fun <- logisticWeight(-0.1, 50)
-
-# Run serial TWDTW analysis 
-r_twdtw <- twdtwApply(x = validation_ts, 
-                     y = temporal_patterns, weight.fun = log_fun)
-
-# Classify raster based on the TWDTW analysis 
-r_lucc <- twdtwClassify(x = r_twdtw, overlap = 0.5)
-
-# Accuracy assessment 
-twdtw_assess <- twdtwAssess(r_lucc, area = 53664.67, conf.int = .95)
-
-# Plot map accuracy 
-plot(twdtw_assess, type = "accuracy")
-
-# Plot area uncertainty 
-plot(twdtw_assess, type = "area")
-
-# Get latex table with error matrix 
-twdtwXtable(twdtw_assess, table.type = "matrix")
-
-# Get latex table with error accuracy 
-twdtwXtable(twdtw_assess, table.type = "accuracy")
-
-# Get latex table with area uncertainty 
-twdtwXtable(twdtw_assess, table.type = "area")
-
-}
 \dontrun{
   
 # Example of TWDTW analysis using raster files 
@@ -194,7 +125,7 @@ plot(r_lucc, type = "map")
 # Assess classification 
 twdtw_assess <- 
   twdtwAssess(object = r_lucc, y = validation_samples, 
-              proj4string = proj_str, conf.int = .95, rm.nosample = TRUE) 
+              proj4string = proj_str, conf.int = .95) 
 
 # Plot map accuracy 
 plot(twdtw_assess, type = "accuracy")
@@ -216,6 +147,98 @@ twdtwXtable(twdtw_assess, table.type = "area")
 
 }
 
+\dontrun{
+  
+# Example of TWDTW analysis using raster files 
+library(dtwSat)
+library(caret) 
+
+# Load raster data 
+evi  <- brick(system.file("lucc_MT/data/evi.tif",  package = "dtwSat"))
+ndvi <- brick(system.file("lucc_MT/data/ndvi.tif", package = "dtwSat"))
+red  <- brick(system.file("lucc_MT/data/red.tif",  package = "dtwSat"))
+blue <- brick(system.file("lucc_MT/data/blue.tif", package = "dtwSat"))
+nir  <- brick(system.file("lucc_MT/data/nir.tif",  package = "dtwSat"))
+mir  <- brick(system.file("lucc_MT/data/mir.tif",  package = "dtwSat"))
+doy  <- brick(system.file("lucc_MT/data/doy.tif",  package = "dtwSat"))
+timeline <- 
+  scan(system.file("lucc_MT/data/timeline", package = "dtwSat"), what="date")
+
+# Create raster time series 
+rts <- twdtwRaster(evi, ndvi, red, blue, nir, mir, timeline = timeline, doy = doy)
+
+# Load field samples and projection 
+field_samples <- 
+  read.csv(system.file("lucc_MT/data/samples.csv", package = "dtwSat"))
+proj_str <- 
+  scan(system.file("lucc_MT/data/samples_projection", package = "dtwSat"), 
+       what = "character")
+
+# Split samples for training (10\%) and validation (90\%) using stratified sampling 
+set.seed(1)
+I <- unlist(createDataPartition(field_samples$label, p = 0.1))
+training_samples <- field_samples[I, ]
+validation_samples <- field_samples[-I, ]
+
+# Get time series form raster
+training_ts <- getTimeSeries(rts, y = training_samples, proj4string = proj_str)
+validation_ts <- getTimeSeries(rts, y = validation_samples, proj4string = proj_str)
+
+# Create temporal patterns 
+temporal_patterns <- createPatterns(training_ts, freq = 8, formula = y ~ s(x))
+
+# Set TWDTW weight function 
+log_fun <- logisticWeight(-0.1, 50)
+
+# Run serial TWDTW analysis 
+r_twdtw <-
+  twdtwApply(x = rts, y = temporal_patterns, weight.fun = log_fun, progress = 'text')
+
+# or Run parallel TWDTW analysis
+beginCluster()
+r_twdtw <- 
+  twdtwApplyParallel(x = rts, y = temporal_patterns, weight.fun = log_fun, progress = 'text')
+endCluster()
+
+# Plot TWDTW distances for the first year 
+plot(r_twdtw, type = "distance", time.levels = 1)
+
+# Classify raster based on the TWDTW analysis 
+r_lucc <- twdtwClassify(r_twdtw, progress = 'text')
+
+# Plot TWDTW classification results 
+plot(r_lucc, type = "map")
+
+# Assess classification 
+twdtw_assess <- 
+  twdtwAssess(object = r_lucc, y = validation_samples, 
+              proj4string = proj_str, conf.int = .95) 
+
+# Plot map accuracy 
+plot(twdtw_assess, type = "accuracy")
+
+# Plot area uncertainty 
+plot(twdtw_assess, type = "area")
+
+# Plot misclassified samples  
+plot(twdtw_assess, type = "map", samples = "incorrect") 
+
+# Get latex table with error matrix 
+twdtwXtable(twdtw_assess, table.type = "matrix")
+
+# Get latex table with error accuracy 
+twdtwXtable(twdtw_assess, table.type = "accuracy")
+
+# Get latex table with area uncertainty 
+twdtwXtable(twdtw_assess, table.type = "area")
+
+}
+
+}
+\references{
+\insertRef{Maus:2019}{dtwSat}
+  
+  \insertRef{Maus:2016}{dtwSat}
 }
 \seealso{
 \code{\link[dtwSat]{twdtwApply}}, 

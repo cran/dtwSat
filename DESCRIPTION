@@ -2,10 +2,11 @@ Package: dtwSat
 Type: Package
 Title: Time-Weighted Dynamic Time Warping for Satellite Image Time
         Series Analysis
-Version: 0.2.4
-Date: 2018-05-24
+Version: 0.2.5
+Date: 2019-01-27
 Authors@R: c(person('Victor', 'Maus', role = c('aut', 'cre'), email = 'vwmaus1@gmail.com', comment = c(ORCID = "0000-0002-7385-4723")), 
   person('Marius', 'Appel', role = c('ctb')),
+  person('Nikolas', 'Kuschnig', role = c('ctb')),
   person('Toni',   'Giorgino', role = c('ctb')))
 Description: Provides an implementation of the Time-Weighted Dynamic Time
     Warping (TWDTW) method for land cover mapping using satellite image time series.
@@ -19,7 +20,8 @@ Description: Provides an implementation of the Time-Weighted Dynamic Time
     change, and compute accuracy assessment metrics.
 Depends: R (>= 3.2.0), zoo, raster, snow, ggplot2
 Imports: methods, rgdal, dtw, proxy, scales, reshape2, grDevices,
-        RColorBrewer, plyr, stats, sp, lubridate, caret, mgcv, xtable
+        RColorBrewer, plyr, stats, sp, lubridate, caret, mgcv, xtable,
+        Rdpack
 Suggests: knitr, rmarkdown, rticles, gridExtra, grid, png, Hmisc,
         tikzDevice
 License: GPL (>= 2) | file LICENSE
@@ -27,10 +29,11 @@ URL: https://github.com/vwmaus/dtwSat/
 BugReports: https://github.com/vwmaus/dtwSat/issues
 Author: Victor Maus [aut, cre] (<https://orcid.org/0000-0002-7385-4723>),
   Marius Appel [ctb],
+  Nikolas Kuschnig [ctb],
   Toni Giorgino [ctb]
 Maintainer: Victor Maus <vwmaus1@gmail.com>
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Collate: 'class-crossValidation.R' 'class-twdtwRaster.R'
         'class-twdtwAssessment.R' 'class-twdtwTimeSeries.R'
         'class-twdtwMatches.R' 'createPatterns.R' 'data.R' 'dtw.R'
@@ -44,8 +47,8 @@ Collate: 'class-crossValidation.R' 'class-twdtwRaster.R'
         'twdtwApply.R' 'twdtwApplyParallel.R' 'twdtwAssess.R'
         'twdtwClassify.R' 'twdtwCrossValidate.R' 'twdtwDist.R'
         'twdtwXtable.R' 'zzz.R'
-VignetteBuilder: knitr
+RdMacros: Rdpack
 NeedsCompilation: yes
-Packaged: 2018-05-24 19:08:35 UTC; victor
+Packaged: 2019-01-27 23:38:58 UTC; maus
 Repository: CRAN
-Date/Publication: 2018-05-25 07:45:22 UTC
+Date/Publication: 2019-01-28 00:10:02 UTC
