@@ -174,18 +174,26 @@ twdtwAssess.twdtwRaster = function(object, y, labels, id.labels, proj4string, co
   
   # Check control points 
   y = .adjustLabelID(y, labels, id.labels)
-  if(!"from"%in%names(y))
-    stop("Sample starting date not found, the argument 'y' must have a column called 'from'")
-  if(!"to"%in%names(y))
-    stop("Sample ending date not found, the argument 'y' must have a column called 'to'")
+  if(!"from"%in%names(y) || !"to"%in%names(y))
+    stop("Argument 'y' must contain columns called 'to' and 'from' to locate start and end dates")
   y = .toSpatialPointsDataFrame(y, object, proj4string)
   
   # Get classified raster 
   x = object@timeseries$Class
   x_twdtw = object@timeseries$Distance
-  
+
   # Reproject points to raster projection 
   y = spTransform(y, CRS(projection(object)))
+  
+  # Remove samples outside raster bbox
+  n_s <- length(y)
+  y <- intersect(y, x)
+  if(n_s > length(y)){
+    warning(cat(n_s - length(y), "samples out of bounds removed"))
+  }
+  if(length(y) < 1){
+    stop(cat(n_s - length(y), "samples out of bounds removed. There are no samples intersecting the study area"))
+  }
   
   # Get time intervals 
   timeline = index(object)
@@ -241,7 +249,10 @@ twdtwAssess.twdtwRaster = function(object, y, labels, id.labels, proj4string, co
 }
 
 .twdtwAssess = function(x, mapped_area, conf.int, rm.nosample){
-  
+   
+  if(nrow(x)<1)
+    return(NULL)
+           
   mult = qnorm(1-(1-conf.int)/2, mean = 0, sd = 1)
   
   cnames = names(mapped_area)

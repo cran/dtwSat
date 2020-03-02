@@ -1,3 +1,11 @@
+# dtwSat v0.2.6
+
+* Fixes error in to - from : non-numeric argument to binary operator in "twdtwAssess"
+
+* Fixes bug in .twdtw fundtion 
+
+* Adds funtion for fast time series classification "twdtw_reduce_time" (~3x faster than twdtwApply)
+
 # dtwSat v0.2.5
 
 * Adds dtwSat paper published on Journal of Statistical Software 

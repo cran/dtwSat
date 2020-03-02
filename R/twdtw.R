@@ -13,7 +13,7 @@
 ###############################################################
 
 .twdtw = function(x, y, weight.fun, dist.method, step.matrix, 
-                  n, span, min.length, theta, keep){
+                  n, span, min.length, keep){
   labels = as.character(labels(y))
   names(labels) = labels
   timeseries = x[[1]]
@@ -38,7 +38,7 @@
     # Time cost matrix 
     psi = .g(dist(doyy, doyx, method=dist.method))
     # Weighted local cost matrix 
-    cm = (1-theta)*phi + theta*weight.fun(psi)
+    cm = phi * weight.fun(psi)
     
     # Compute cost matris 
     internals = .computecost(cm, step.matrix)
