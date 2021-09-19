@@ -15,6 +15,9 @@
 setGeneric("layers", 
            function(x) standardGeneric("layers"))
 
+setGeneric("index", 
+           function(x) standardGeneric("index"))
+
 setGeneric("coverages", 
            function(x) standardGeneric("coverages"))
 
@@ -79,10 +82,6 @@ extent.twdtwRaster = function(x){
 
 writeRaster.twdtwRaster = function(x, filepath, ...){
   lapply(names(x@timeseries), function(i) writeRaster(x@timeseries[[i]], filename = paste0(filepath, "/", i, ".grd"), ...))
-}
-
-projection.twdtwRaster = function(x){
-  projection(x@timeseries[[1]])
 }
 
 ncol.twdtwRaster = function(x){
@@ -186,12 +185,6 @@ setMethod("writeRaster", "twdtwRaster",
             writeRaster.twdtwRaster(x, filepath, ...)
           }
 )
-
-#' @inheritParams twdtwRaster-class
-#' @rdname twdtwRaster-class
-#' @export
-setMethod(f = "projection", "twdtwRaster",
-          definition = projection.twdtwRaster)
 
 #' @inheritParams twdtwRaster-class
 #' @rdname twdtwRaster-class
@@ -479,7 +472,7 @@ show.twdtwRaster = function(object){
   cat("Dimensions:",dim(object),"(nlayers, nrow, ncol, length)\n")
   cat("Resolution:",res(object)," (x, y)\n")
   cat("Extent    :",as.vector(extent(object)), "(xmin, xmax, ymin, ymax)\n")
-  cat("Coord.ref.:",projection(object),"\n") 
+  cat("Coord.ref.:",projection(object@timeseries[[1]]),"\n") 
   invisible(NULL)
 }
 
@@ -541,7 +534,7 @@ summary.twdtwCrossValidation = function(object, conf.int=.95, ...){
   
   sd_ov = sd(ov[, c("OV")])
   sd_uapa = aggregate(uapa[, c("UA","PA")], list(uapa$label), sd)
-  l_names = levels(uapa$label)
+  l_names = unique(uapa$label)
   names(l_names) = l_names
   ic_ov = mean_cl_boot(x = ov[, c("OV")], conf.int = conf.int, ...)
   names(ic_ov) = NULL

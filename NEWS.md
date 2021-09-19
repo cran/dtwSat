@@ -1,10 +1,18 @@
+# dtwSat v0.2.7
+
+* Adds support to user defined TWDTW weight function
+
+* Drop support to parallel processing
+
+* Adds a minimalist function called twdtwReduceTime that is 3x faster than twdtwApply. This function can be used for high level parallel processing implemented by users
+
 # dtwSat v0.2.6
 
 * Fixes error in to - from : non-numeric argument to binary operator in "twdtwAssess"
 
 * Fixes bug in .twdtw fundtion 
 
-* Adds funtion for fast time series classification "twdtw_reduce_time" (~3x faster than twdtwApply)
+* Adds function for fast time series classification "twdtw_reduce_time" (~3x faster than twdtwApply)
 
 # dtwSat v0.2.5
 
