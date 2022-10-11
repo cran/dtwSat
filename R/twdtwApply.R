@@ -1,17 +1,3 @@
-###############################################################
-#                                                             #
-#   (c) Victor Maus <vwmaus1@gmail.com>                       #
-#       Institute for Geoinformatics (IFGI)                   #
-#       University of Muenster (WWU), Germany                 #
-#                                                             #
-#       Earth System Science Center (CCST)                    #
-#       National Institute for Space Research (INPE), Brazil  #
-#                                                             #
-#                                                             #
-#   R Package dtwSat - 2016-02-22                             #
-#                                                             #
-###############################################################
-
 #' @include methods.R
 #' @title Apply TWDTW analysis 
 #' @name twdtwApply
@@ -72,6 +58,16 @@
 #' @param filepath A character. The path at which to save the raster with results. If not provided the 
 #' function saves in the current work directory. 
 #' 
+#' @param minrows Integer. Minimum number of rows in each block
+#' 
+#' @param progress character. 'text' or 'window'.
+#' 
+#' @param legacy logical. If FALSE, runs a faster new TWDTW implementation. Default FLASE
+#' 
+#' @param alpha	Numeric. The steepness of TWDTW logistic weight.
+#' 
+#' @param beta Numeric. The midpoint of TWDTW logistic weight.
+#' 
 #' @references 
 #'   \insertAllCited{}
 #' 
@@ -99,7 +95,6 @@ setGeneric(name = "twdtwApply",
                 dist.method="Euclidean", step.matrix = symmetric1, n=NULL, 
                 span=NULL, min.length=0, ...) standardGeneric("twdtwApply"))
 
-
 #' @rdname twdtwApply 
 #' @aliases twdtwApply-twdtwTimeSeries 
 #' @examples
@@ -107,7 +102,7 @@ setGeneric(name = "twdtwApply",
 #' log_fun = logisticWeight(-0.1, 100)
 #' ts = twdtwTimeSeries(MOD13Q1.ts.list)
 #' patt = twdtwTimeSeries(MOD13Q1.patterns.list)
-#' mat1 = twdtwApply(x=ts, y=patt, weight.fun=log_fun)
+#' mat1 = twdtwApply(x=ts, y=patt, weight.fun=log_fun, keep=TRUE, legacy=TRUE)
 #' mat1
 #' 
 #' \dontrun{
@@ -118,7 +113,7 @@ setGeneric(name = "twdtwApply",
 #' }
 #' @export
 setMethod(f = "twdtwApply", "twdtwTimeSeries",
-          def = function(x, y, resample, length, weight.fun, dist.method, step.matrix, n, span, min.length, keep=FALSE, ...){
+          def = function(x, y, resample, length, weight.fun, dist.method, step.matrix, n, span, min.length, legacy=FALSE, keep=FALSE, ...){
                   if(!is(y, "twdtwTimeSeries"))
                     stop("y is not of class twdtwTimeSeries")
                   if(!is(step.matrix, "stepPattern"))
@@ -129,23 +124,53 @@ setMethod(f = "twdtwApply", "twdtwTimeSeries",
                     stop("weight.fun is not a function")
                   if(resample)
                     y = resampleTimeSeries(object=y, length=length)
-                  twdtwApply.twdtwTimeSeries(x, y, weight.fun, dist.method, step.matrix, n, span, min.length, keep)
+                  if(legacy){
+                    twdtwApply.twdtwTimeSeries(x, y, weight.fun, dist.method, step.matrix, n, span, min.length, keep)
+                  } else {
+                    twdtwApply.twdtwTimeSeries.fast(x, y, ...)
+                  }
+                  
            })
+
+twdtwApply.twdtwTimeSeries.fast = function(x, y, ...){
+  yy = lapply(y@timeseries, function(ts)cbind(data.frame(date = index(ts)), as.data.frame(ts))) 
+  xm = lapply(x@timeseries, function(ts)twdtwReduceTime(cbind(data.frame(date = index(ts)), as.data.frame(ts)), keep = FALSE, y = yy, ...))
+  lb = as.numeric(labels(y@labels))
+  lv = levels(y)
+  names(lb) = lv
+  list(x = x, y = y, aligs = lapply(xm, function(al) lapply(lb, function(i){
+    bm = list(label = numeric(),
+              from = numeric(),
+              to = numeric(),
+              distance = numeric(),
+              K = 0,
+              matching = list(),
+              internals = list())
+    if(!any(al$label == i)){
+      return(bm)
+    }
+    bm$label = lv[i]
+    bm$from = al$from[al$label == i]
+    bm$to = al$to[al$label == i]
+    bm$distance = al$distance[al$label == i]
+    bm$K = length(bm$distance)
+    return(bm)
+  })))
+}
 
 twdtwApply.twdtwTimeSeries = function(x, y, weight.fun, dist.method, step.matrix, n, span, min.length, keep){
     res = lapply(as.list(x), FUN = .twdtw, y, weight.fun, dist.method, step.matrix, n, span, min.length, keep)
     new("twdtwMatches", timeseries=x, patterns=y, alignments=res)
 }
 
-
-           
 #' @rdname twdtwApply 
 #' @aliases twdtwApply-twdtwRaster 
 #' @example examples/test_twdtw_raster_analysis.R 
 #' @export
 setMethod(f = "twdtwApply", "twdtwRaster",
           def = function(x, y, resample, length, weight.fun, dist.method, step.matrix, n, span, min.length, 
-                        breaks=NULL, from=NULL, to=NULL, by=NULL, overlap=0.5, filepath="", ...){
+                        breaks=NULL, from=NULL, to=NULL, by=NULL, overlap=0.5, filepath="", fill=NULL,
+                        legacy=FALSE, progress = "text", minrows=1, alpha = -0.1, beta = 50, ...){
                   if(!is(step.matrix, "stepPattern"))
                     stop("step.matrix is not of class stepPattern")
                   if(is.null(weight.fun))
@@ -171,15 +196,158 @@ setMethod(f = "twdtwApply", "twdtwRaster",
                       breaks = seq(from, to, paste(by,"month"))
                     }
                   breaks = as.Date(breaks)
-                  if(resample)
+                  if(resample){
                     y = resampleTimeSeries(object=y, length=length)
-                  twdtwApply.twdtwRaster(x, y, weight.fun, dist.method, step.matrix, n, span, min.length, 
-                                          breaks, overlap, filepath, ...)
+                  }
+                  if(legacy){
+                    if(is.null(fill)){
+                      fill = 255
+                    }
+                    twdtwApply.twdtwRaster(x, y, weight.fun, dist.method, step.matrix, n, span, min.length, 
+                                           breaks, overlap, filepath, fill, ...) 
+                  } else {
+                    twdtwApply.twdtwRaster.fast(x, y, alpha, beta, progress, breaks, fill, filepath, minrows, ...)
+                  }
            })
-           
+
+twdtwApply.twdtwRaster.fast = function(x, 
+                           y, 
+                           alpha = -0.1,
+                           beta = 50,
+                           progress = "text", 
+                           breaks=NULL, 
+                           fill=NULL,
+                           filepath="",
+                           minrows=1, ...){
+  
+  if(is.twdtwTimeSeries(y)){
+    y <- lapply(y@timeseries, function(yy){
+      date <- index(yy)
+      yy <- as.data.frame(yy)
+      yy <- cbind(date, yy)
+    })
+  }
+  
+  if(is.null(fill)){
+    fill = length(y) + 1
+  }
+  
+  if(any(!sapply(y, function(yy) "date" %in% names(yy)))){
+    stop("every patter in y must have a column called 'date'")
+  }
+  
+  # Match raster bands to pattern bands
+  raster_bands <- coverages(x)
+  pattern_bands <- names(y[[1]])
+  matching_bands <- pattern_bands[pattern_bands %in% raster_bands]
+  
+  if(length(matching_bands) < 1)
+    stop(paste0("Bands from twdtwRaster do not match the bands from patterns"))
+  
+  if("doy" %in% coverages(x) & !"doy" %in% matching_bands)
+    matching_bands <- c("doy", matching_bands)
+  
+  x <- subset(x, layers = matching_bands)
+  raster_bands <- coverages(x)
+  
+  # Set raster levels and labels 
+  levels <- names(y)
+  names(levels) <- levels
+  
+  # Create output raster objects 
+  r_template <- brick(x@timeseries[[1]], nl = length(breaks) - 1, values = FALSE)
+  out <- rep(list(r_template), 2)
+  names(out) <- c("label", "distance")
+  
+  filepath <- trim(filepath)
+  filename <- NULL
+  if (filepath != "") {
+    dir.create(path = filepath, showWarnings = TRUE, recursive = TRUE)
+    filename <- paste0(filepath, "/", names(out), ".grd")
+    names(filename) <- names(out)
+  } else if (!canProcessInMemory(r_template, n = length(breaks) + length(x@timeseries) )) {
+    filename <- sapply(names(out), rasterTmpFile)
+  }
+  
+  if (!is.null(filename)) {
+    out <- lapply(names(out), function(i) writeStart(out[[i]], filename = filename[i], ...))
+    names(out) <- c("label", "distance")
+  } else {
+    vv <- lapply(names(out), function(i) matrix(out[[i]], ncol = nlayers(out[[i]])))
+    names(vv) <- names(out)
+  }
+  
+  bs <- blockSize(x@timeseries[[1]], minrows = minrows)
+  bs$array_rows <- cumsum(c(1, bs$nrows*out[[1]]@ncols))
+  pb <- pbCreate(bs$n, progress)
+  
+  for(k in 1:bs$n){
+    
+    # Get raster data
+    v <- lapply(x@timeseries, getValues, row = bs$row[k], nrows = bs$nrows[k])
+    
+    # Get time series
+    ts <- lapply(1:nrow(v[[1]]), function(i){
+      # Get time series dates
+      if(any(names(v) %in% "doy")){
+        timeline <- dtwSat::getDatesFromDOY(year = format(dtwSat::index(x), "%Y"), doy = v[["doy"]][i,])
+      } else {
+        timeline <- dtwSat::index(x)
+      } 
+      data.frame(sapply(v[!(names(v) %in% "doy")], function(v) v[i, , drop = FALSE]), date = timeline)
+    })
+    
+    # Apply TWDTW analysis
+    twdtw_results <- foreach(
+      tsidopar = ts, 
+      .combine = 'rbind'
+    ) %dopar% {
+      res = twdtwReduceTime(x = tsidopar, y = y, breaks = breaks, fill = fill, alpha = alpha, beta = beta, keep = FALSE, ...)
+      twdtw_label <- matrix(res$label, ncol = length(breaks)-1, byrow = TRUE)
+      twdtw_distance <- matrix(res$distance, ncol = length(breaks)-1, byrow = TRUE)
+      cbind(twdtw_label, twdtw_distance)
+    }
+    
+    # twdtw_results <- data.table::rbindlist(twdtw_results)[,c("label","distance")]
+    # twdtw_label <- matrix(twdtw_results$label, ncol = length(breaks)-1, byrow = TRUE)
+    # twdtw_distance <- matrix(twdtw_results$distance, ncol = length(breaks)-1, byrow = TRUE)
+    twdtw_label <- twdtw_results[,1:(length(breaks)-1),drop=FALSE]
+    twdtw_distance <- twdtw_results[,length(breaks):(2*length(breaks)-2),drop=FALSE]
+    
+    # Get best matches for each point, period, and pattern
+    m <- length(levels)
+    h <- length(breaks) - 1
+    
+    rows <- seq(from = bs$array_rows[k], by = 1, length.out = bs$nrows[k]*out[[1]]@ncols)
+    if (!is.null(filename)) {
+      writeValues(out$label, twdtw_label, bs$row[k])
+      writeValues(out$distance, twdtw_distance, bs$row[k])
+    } else {
+      vv$label[rows,] <- twdtw_label
+      vv$distance[rows,] <- twdtw_distance
+    }
+    
+    pbStep(pb, k)
+    
+  }
+  
+  if (!is.null(filename)) {
+    out <- lapply(out, writeStop)
+  } else {
+    out <- lapply(seq_along(out), function(i) setValues(out[[i]], values = vv[[i]]))
+  }
+  
+  pbClose(pb)
+  
+  names(out) <- c("label", "distance")
+  
+  twdtwRaster(Class = out$label, Distance = out$distance, ..., timeline = breaks[-1], 
+              labels = c(levels, "unclassified"), levels = c(seq_along(levels), fill), filepath = filepath)
+  
+}
 
 twdtwApply.twdtwRaster = function(x, y, weight.fun, dist.method, step.matrix, n, span, min.length, 
-                                  breaks, overlap, filepath, ...){
+                                  breaks, overlap, filepath, fill, ...){
   
   
   # Match raster bands to pattern bands
@@ -255,7 +423,7 @@ twdtwApply.twdtwRaster = function(x, y, weight.fun, dist.method, step.matrix, n,
     h <- length(breaks) - 1
     
     A <- lapply(as.list(twdtw_results), FUN = .lowestDistances, m = m, n = h, 
-                levels = levels, breaks = breaks, overlap = overlap, fill = 9999)
+                levels = levels, breaks = breaks, overlap = overlap, fill = fill)
     
     B <- as.list(data.frame(do.call("rbind", A)))
     
@@ -343,4 +511,3 @@ twdtwApply.twdtwRaster = function(x, y, weight.fun, dist.method, step.matrix, n,
   formals(fun) = new_formals
   fun
 }
-

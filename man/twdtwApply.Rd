@@ -33,6 +33,7 @@ twdtwApply(
   n,
   span,
   min.length,
+  legacy = FALSE,
   keep = FALSE,
   ...
 )
@@ -54,6 +55,12 @@ twdtwApply(
   by = NULL,
   overlap = 0.5,
   filepath = "",
+  fill = NULL,
+  legacy = FALSE,
+  progress = "text",
+  minrows = 1,
+  alpha = -0.1,
+  beta = 50,
   ...
 )
 }
@@ -101,6 +108,8 @@ meaning that the matching cannot be shorter than half of the pattern length.}
 \item{...}{Arguments to pass to \code{\link[raster]{writeRaster}} and 
 \code{\link[raster]{pbCreate}}}
 
+\item{legacy}{logical. If FALSE, runs a faster new TWDTW implementation. Default FLASE}
+
 \item{keep}{Preserves the cost matrix, inputs, and other internal structures. 
 Default is FALSE. For plot methods use \code{keep=TRUE}.}
 
@@ -119,6 +128,18 @@ between one match and the interval of classification. Default is 0.5,
 
 \item{filepath}{A character. The path at which to save the raster with results. If not provided the 
 function saves in the current work directory.}
+
+\item{fill}{A character to fill the classification gaps. 
+For signature \code{twdtwTimeSeries} the default is \code{fill="unclassified"}, 
+for signature \code{twdtwRaster} the default is \code{fill="unclassified"}.}
+
+\item{progress}{character. 'text' or 'window'.}
+
+\item{minrows}{Integer. Minimum number of rows in each block}
+
+\item{alpha}{Numeric. The steepness of TWDTW logistic weight.}
+
+\item{beta}{Numeric. The midpoint of TWDTW logistic weight.}
 }
 \value{
 An object of class twdtw*.
@@ -143,7 +164,7 @@ See \insertCite{Maus:2016,Maus:2019}{dtwSat} for details about the method.
 log_fun = logisticWeight(-0.1, 100)
 ts = twdtwTimeSeries(MOD13Q1.ts.list)
 patt = twdtwTimeSeries(MOD13Q1.patterns.list)
-mat1 = twdtwApply(x=ts, y=patt, weight.fun=log_fun)
+mat1 = twdtwApply(x=ts, y=patt, weight.fun=log_fun, keep=TRUE, legacy=TRUE)
 mat1
 
 \dontrun{

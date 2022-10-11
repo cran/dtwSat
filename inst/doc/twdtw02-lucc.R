@@ -1,0 +1,124 @@
+## ---- echo=FALSE, include=FALSE-----------------------------------------------
+knitr::opts_chunk$set(collapse = TRUE)
+knitr::opts_chunk$set(fig.height = 4.5)
+knitr::opts_chunk$set(fig.width = 6)
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+library(dtwSat)  
+  
+evi  <- brick(system.file("lucc_MT/data/evi.tif",  package = "dtwSat"))
+ndvi <- brick(system.file("lucc_MT/data/ndvi.tif", package = "dtwSat"))
+red  <- brick(system.file("lucc_MT/data/red.tif",  package = "dtwSat"))
+blue <- brick(system.file("lucc_MT/data/blue.tif", package = "dtwSat"))
+nir  <- brick(system.file("lucc_MT/data/nir.tif",  package = "dtwSat"))
+mir  <- brick(system.file("lucc_MT/data/mir.tif",  package = "dtwSat"))
+doy  <- brick(system.file("lucc_MT/data/doy.tif",  package = "dtwSat"))
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+timeline <- scan(system.file("lucc_MT/data/timeline", package = "dtwSat"), what="date")
+timeline
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+rts <- twdtwRaster(evi, ndvi, red, blue, nir, mir, timeline = timeline, doy = doy)
+rts
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+field_samples <- read.csv(system.file("lucc_MT/data/samples.csv", package = "dtwSat"))
+head(field_samples)
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+library(caret)
+
+set.seed(1) # set for reproducibility 
+
+I <- unlist(createDataPartition(field_samples$label, p = 0.1))
+
+training_samples <- field_samples[I,]
+
+validation_samples <- field_samples[-I,]
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+training_ts <- getTimeSeries(rts, 
+                             y = training_samples, 
+                             proj4string = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+profiles_library <- createPatterns(training_ts, 
+                                   freq = 8, 
+                                   formula = y ~ s(x))
+
+plot(profiles_library, type = "patterns")
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+system.time(
+  twdtw_lucc <- twdtwApply(x = rts, 
+                           y = profiles_library, 
+                           alpha = -0.1,
+                           beta = 50,
+                           progress = 'text', 
+                           minrows = 30,
+                           legacy = FALSE,
+                           time.window = TRUE)
+)
+
+## ---- echo = TRUE, eval = FALSE, warning = FALSE, message = FALSE-------------
+#  library(doParallel)
+#  library(parallel)
+#  library(foreach)
+#  
+#  cl <- makeCluster(detectCores(), type = "FORK")
+#  registerDoParallel(cl)
+#  
+#  system.time(
+#    twdtw_lucc <- twdtwApply(x = rts,
+#                             y = profiles_library,
+#                             alpha = -0.1,
+#                             beta = 50,
+#                             progress = 'text',
+#                             minrows = 30,
+#                             legacy = FALSE,
+#                             time.window = TRUE)
+#  )
+#  
+#  registerDoSEQ()
+#  stopCluster(cl)
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+# Plot TWDTW distances for the first year 
+  plot(twdtw_lucc, type = "distance", time.levels = 1)
+  
+# Plot TWDTW classification results 
+  plot(twdtw_lucc, type = "map")
+
+# Plot mapped area time series 
+  plot(twdtw_lucc, type = "area")
+  
+# Plot land-cover changes
+  plot(twdtw_lucc, type = "changes")
+
+## ---- echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE--------------
+# Assess classification 
+  twdtw_assess <- 
+    twdtwAssess(twdtw_lucc, 
+                y = validation_samples, 
+                proj4string = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0",
+                conf.int = .95)
+  
+# Plot map accuracy 
+  plot(twdtw_assess, type = "accuracy")
+  
+# Plot area uncertainty 
+  plot(twdtw_assess, type = "area")
+  
+# Plot misclassified samples  
+  plot(twdtw_assess, type = "map", samples = "incorrect")
+  
+# Get latex table with error matrix 
+  twdtwXtable(twdtw_assess, table.type = "matrix")
+  
+# Get latex table with error accuracy 
+  twdtwXtable(twdtw_assess, table.type = "accuracy")
+  
+# Get latex table with area uncertainty 
+  twdtwXtable(twdtw_assess, table.type = "area")
+

@@ -1,12 +1,13 @@
 #' @include methods.R
-#' @title Minimalist version of TWDTW apply
+#' @title Faster version of TWDTW apply
 #' @name twdtwReduceTime
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @rdname twdtwReduceTime 
 #' 
-#' @description This function is a minimalist implementation of 
-#' \link[dtwSat]{twdtwApply} that is in average 3x faster. It does not keep any 
-#' intermediate data. It performs a multidimensional TWDTW analysis 
+#' @description This function is a faster implementation of 
+#' \link[dtwSat]{twdtwApply} that is in average 4x faster. The time weight function 
+#' is coded in Fortran. It does not keep any intermediate data. 
+#' It performs a multidimensional TWDTW analysis 
 #' \insertCite{Maus:2019}{dtwSat} and retrieves only the best matches between 
 #' the unclassified time series and the patterns for each defined time interval.
 #' 
@@ -22,13 +23,16 @@
 #' @param y a list of data.frame objects similar to \code{x}. 
 #' The temporal patterns used to classify the time series in \code{x}. 
 #' 
-#' @param fill An integer to fill the classification gaps. Default 255.
+#' @param time.window logical. TRUE will constrain the TWDTW computation to the 
+#' value of the parameter \code{beta} defined in the logistic weight function. 
+#' Default is FALSE. 
+#' 
+#' @param fill An integer to fill the classification gaps.
 #' 
 #' @examples 
 #' \dontrun{
 #' 
 #' library(dtwSat)
-#' log_fun = logisticWeight(-0.1, 50)
 #' from = "2009-09-01"
 #' to = "2017-09-01"
 #' by = "12 month"
@@ -37,7 +41,7 @@
 #' tw_patt = readRDS(system.file("lucc_MT/patterns/patt.rds", package = "dtwSat"))
 #' tw_ts = twdtwTimeSeries(MOD13Q1.ts) 
 #' 
-#' # Table from csv for minimalist version 
+#' # Table from csv for faster version 
 #' mn_patt <- lapply(dir(system.file("lucc_MT/patterns", package = "dtwSat"), 
 #'   pattern = ".csv$", full.names = TRUE), read.csv, stringsAsFactors = FALSE)
 #' mn_ts <- read.csv(system.file("reduce_time/ts_MODIS13Q1.csv", package = "dtwSat"), 
@@ -45,32 +49,35 @@
 #' 
 #' # Benchtmark 
 #' rbenchmark::benchmark(
-#'   original = twdtwClassify(twdtwApply(x = tw_ts, y = tw_patt, weight.fun = log_fun), 
+#'   legacy_twdtw = twdtwClassify(twdtwApply(x = tw_ts, y = tw_patt, weight.fun = log_fun), 
 #'                                       from = from, to = to, by = by)[[1]],
-#'   minimalist = twdtwReduceTime(x = mn_ts, y = mn_patt, weight.fun = log_fun, 
-#'                                       from = from, to = to, by = by)  
+#'   fast_twdtw = twdtwReduceTime(x = mn_ts, y = mn_patt, rom = from, to = to, by = by)  
 #'  )
 #' }
 #' 
 #' @export
-twdtwReduceTime = function(x, 
-                           y, 
-                           weight.fun = NULL,
+twdtwReduceTime = function(x,
+                           y,
+                           alpha = -0.1,
+                           beta = 50,
+                           time.window = FALSE,
                            dist.method = "Euclidean",
                            step.matrix = symmetric1,
-                           from = NULL, 
-                           to = NULL, 
-                           by = NULL, 
-                           overlap = .5, 
-                           fill = 255){
+                           from = NULL,
+                           to = NULL,
+                           by = NULL,
+                           breaks = NULL,
+                           overlap = .5,
+                           fill = length(y) + 1,
+                           keep = FALSE, ...){
 
-  # Split time series from dates 
-  px <- x[,names(x)!="date",drop=FALSE] 
-  tx <- as.Date(x$date) 
+  # Split time series from dates
+  px <- x[,names(x)!="date",drop=FALSE]
+  tx <- as.Date(x$date)
 
-  # Comput TWDTW alignments for all patterns   
-  aligs <- lapply(seq_along(y), function(l){
-    
+  # Compute TWDTW alignments for all patterns   
+  twdtw_data <- lapply(seq_along(y), function(l){
+
     # Split pattern time series from dates 
     py <- y[[l]][,names(y[[l]])!="date",drop=FALSE] 
     ty <- as.Date(y[[l]]$date)
@@ -81,69 +88,176 @@ twdtwReduceTime = function(x,
     px <- px[,names(py),drop=FALSE]
     py <- py[,names(px),drop=FALSE]
     
-    # Compute local cost matrix 
-    cm <- proxy::dist(py, px, method = dist.method)
+    # Get day of the year for pattern and time series 
+    doyy <- as.numeric(format(ty, "%j")) 
+    doyx <- as.numeric(format(tx, "%j")) 
     
-    if(!is.null(weight.fun)){
-      # Get day of the year for pattern and time series 
-      doyy <- as.numeric(format(ty, "%j")) 
-      doyx <- as.numeric(format(tx, "%j")) 
-      
-      # Compute time-weght matrix 
-      w <- .g(proxy::dist(doyy, doyx, method = dist.method))
-      
-      # Apply time-weight to local cost matrix 
-      cm <- weight.fun(cm, w)
-    }
     # Compute accumulated DTW cost matrix 
-    internals <- .computecost(cm = cm, step.matrix = step.matrix)
+    xm = na.omit(cbind(doyx, as.matrix(px)))
+    ym = na.omit(cbind(doyy, as.matrix(py)))
+    internals = .fast_twdtw(xm, ym, alpha, beta, step.matrix, time.window)
     
     # Find all low cost candidates 
-    a <- internals$startingMatrix[internals$N,1:internals$M]
-    d <- internals$costMatrix[internals$N,1:internals$M]
-    candidates   <- data.frame(a, d)
-    candidates   <- candidates[candidates$d==ave(candidates$d, candidates$a, FUN=min),,drop=FALSE]
-    candidates$b <- as.numeric(row.names(candidates))
+    b <- internals$JB[internals$JB!=0]
+    a <- internals$VM[-1,][internals$N,b]
+    d <- internals$CM[-1,][internals$N,b]
+    # View(internals$VM[-1,])
+    # CM <- internals$CM[-1,]; CM[CM>10000] <- NA; CM |> t() |> image()
+    candidates <- matrix(c(a, d, b, b, rep(l, length(b))), ncol = 5, byrow = F)
     
-    # Order maches by minimum TWDTW distance 
-    I <- order(candidates$d)
+    # Order matches by minimum TWDTW distance 
+    I <- order(candidates[,3])
     if(length(I)<1) return(NULL)
 
     # Build alignments table table 
-    res <- data.frame(
-      Alig.N     = I,
-      from       = tx[candidates$a[I]],
-      to         = tx[candidates$b[I]],
-      distance   = candidates$d[I],
-      label      = l
-    )
-    return(res)
+    candidates[,4] <- I
+    
+    if(!keep){
+      internals = NULL
+    } else {
+      internals$tsDates <- tx
+      internals$patternDates <- ty
+    }
+    
+    return(list(candidates = candidates, internals = internals))
     
   })
   
-  # Bind rows 
-  aligs <- data.table::rbindlist(aligs)
-
+  aligs <- do.call("rbind", lapply(twdtw_data, function(x) x$candidates))
+  il <- order(aligs[,1], aligs[,2])
+  
   # Create classification intervals 
-  breaks <- seq(as.Date(from), as.Date(to), by = by)
+  # if(is.null(breaks)){
+  #   breaks <- seq(as.Date(from), as.Date(to), by = by) 
+  # }
+  if(is.null(breaks))
+    if( !is.null(from) & !is.null(to) ){
+      breaks = seq(as.Date(from), as.Date(to), by = by)
+    } else {
+      patt_range = lapply(y, function(yy) range(yy$date))
+      patt_diff = trunc(sapply(patt_range, diff)/30)+1
+      min_range = which.min(patt_diff)
+      by = patt_diff[[min_range]]
+      from = patt_range[[min_range]][1]
+      to = from 
+      month(to) = month(to) + by
+      year(from) = year(range(x$date)[1])
+      year(to) = year(range(x$date)[2])
+      if(to<from) year(to) = year(to) + 1
+      breaks = seq(from, to, paste(by,"month"))
+      breaks = as.Date(breaks)
+    }
+  
   # Find best macthes for the intervals 
-  best_matches <- .bestmatches(
-    x = list(aligs[order(aligs$from, aligs$from),,drop=FALSE]), 
+  best_matches <- .bestmatches2(
+    x = aligs[il,,drop=FALSE], 
+    tx = tx,
     m = length(y), 
     n = length(breaks) - 1, 
     levels = seq_along(y), 
     breaks = breaks, 
     overlap = overlap,
-    fill = 99999)$IM
+    fill = fill)
 
   # Build output 
-  out <- as.data.frame(best_matches[,c(1,3),drop=FALSE])
-  names(out) <- c("label", "Alig.N")
-  out$from <- breaks[-length(breaks)]
-  out$to <- breaks[-1]
-  out <- merge(out, aligs[, c("label", "Alig.N", "distance"),drop=FALSE], by.x = c("label", "Alig.N"), by.y = c("label", "Alig.N"), all.x = TRUE)
-  out <- out[order(out$from), names(out)!="Alig.N"]
-  if(any(out$label==0)) out[out$label==0,]$label <- fill
+  out <- list(
+    label = best_matches$IM[,1],
+    from = breaks[-length(breaks)],
+    to = breaks[-1],
+    distance = best_matches$DB)
+  
+  # Bind rows 
+  if(keep){
+    aligs <- cbind(aligs, rep(0, nrow(aligs)))
+    aligs[il[best_matches$IM[best_matches$IM[,2]!=fill,2]], 6] <- 1
+    out$internals <- list(alignments = aligs, internals = lapply(twdtw_data, function(x) x$internals))
+  }
+  
   return(out)
+}
+
+# @useDynLib dtwSat computecost
+.fast_twdtw = function(xm, ym, alpha, beta, step.matrix, wc){
+  
+  #  cm = rbind(0, cm)
+  n = nrow(ym)
+  m = nrow(xm)
+  d = ncol(ym)
+  
+  if(is.loaded("twdtw", PACKAGE = "dtwSat", type = "Fortran")){
+    out = .Fortran(twdtw, 
+                   XM = matrix(as.double(xm), m, d),
+                   YM = matrix(as.double(ym), n, d),
+                   CM = matrix(as.double(0), n+1, m),
+                   DM = matrix(as.integer(0), n+1, m),
+                   VM = matrix(as.integer(0), n+1, m),
+                   SM = matrix(as.integer(step.matrix), nrow(step.matrix), ncol(step.matrix)),
+                   N  = as.integer(n),
+                   M  = as.integer(m),
+                   D  = as.integer(d),
+                   NS = as.integer(nrow(step.matrix)),
+                   TW = as.double(c(alpha, beta)),
+                   LB = as.logical(wc),
+                   JB = as.integer(rep(0, n))
+                   )
+  } else {
+    stop("Fortran twdtw lib is not loaded")
+  }
+  out
+}
+
+
+# @useDynLib dtwSat bestmatches
+.bestmatches2 = function(x, tx, m, n, levels, breaks, overlap, fill){
+  if(is.loaded("bestmatches", PACKAGE = "dtwSat", type = "Fortran")){
+    if(length(x[,2])<1){
+      res = list(
+        XM = matrix(as.integer(c(as.numeric(tx[x[,1]]), as.numeric(tx[x[,3]]))), ncol = 2),
+        AM = matrix(as.double(.Machine$double.xmax), nrow = n, ncol = m), 
+        DM = as.double(x[,2]),
+        DP = as.integer(as.numeric(breaks)),
+        X  = as.integer(match(x[,5], levels)),
+        IM = matrix(as.integer(fill), nrow = n, ncol = 3),
+        DB = as.double(x[,2]),
+        A  = as.integer(x[,4]),
+        K  = as.integer(length(x[,4])),
+        P  = as.integer(length(breaks)),
+        L  = as.integer(length(levels)),
+        OV = as.double(overlap))
+    } else {
+      res = try(.Fortran(bestmatches, 
+                         XM = matrix(as.integer(c(as.numeric(tx[x[,1]]), as.numeric(tx[x[,3]]))), ncol = 2),
+                         AM = matrix(as.double(.Machine$double.xmax), nrow = n, ncol = m), 
+                         DM = as.double(x[,2]),
+                         DP  = as.integer(as.numeric(breaks)),
+                         X  = as.integer(match(x[,5], levels)),
+                         IM = matrix(as.integer(fill), nrow = n, ncol = 3),
+                         DB = as.double(rep(.Machine$double.xmax, n)),
+                         A  = as.integer(x[,4]),
+                         K  = as.integer(length(x[,4])),
+                         P  = as.integer(length(breaks)),
+                         L  = as.integer(length(levels)),
+                         OV = as.double(overlap)))
+    }
+  } else {
+    stop("Fortran bestmatches lib is not loaded")
+  }
+  if(is(res, "try-error")){
+    res = list(
+      XM = matrix(as.integer(c(as.numeric(tx[x[,1]]), as.numeric(tx[x[,3]]))), ncol = 2),
+      AM = matrix(as.double(.Machine$double.xmax), nrow = n, ncol = m), 
+      DM = as.double(x[,2]),
+      DP = as.integer(as.numeric(breaks)),
+      X  = as.integer(match(x[,5], levels)),
+      IM = matrix(as.integer(fill), nrow = n, ncol = 3),
+      DB = as.double(x[,2]),
+      A  = as.integer(x[,4]),
+      K  = as.integer(length(x[,4])),
+      P  = as.integer(length(breaks)),
+      L  = as.integer(length(levels)),
+      OV = as.double(overlap)
+    )
+  } 
+  res
 }
 

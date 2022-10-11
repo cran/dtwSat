@@ -2,19 +2,24 @@
 % Please edit documentation in R/twdtw_reduce_time.R
 \name{twdtwReduceTime}
 \alias{twdtwReduceTime}
-\title{Minimalist version of TWDTW apply}
+\title{Faster version of TWDTW apply}
 \usage{
 twdtwReduceTime(
   x,
   y,
-  weight.fun = NULL,
+  alpha = -0.1,
+  beta = 50,
+  time.window = FALSE,
   dist.method = "Euclidean",
   step.matrix = symmetric1,
   from = NULL,
   to = NULL,
   by = NULL,
+  breaks = NULL,
   overlap = 0.5,
-  fill = 255
+  fill = length(y) + 1,
+  keep = FALSE,
+  ...
 )
 }
 \arguments{
@@ -27,13 +32,13 @@ the column names in the temporal patterns \code{y}.}
 \item{y}{a list of data.frame objects similar to \code{x}. 
 The temporal patterns used to classify the time series in \code{x}.}
 
-\item{weight.fun}{A function. Any function that receives two matrices and 
-performs a computation on them, returning a single matrix with the same 
-dimensions. The first matrix is the DTW local cost matrix and the 
-second a matrix of the time differences in days. The function should return a 
-matrix of DTW local cost weighted by the time differences. If not declared 
-the time-weight is zero. In this case the function runs the standard version 
-of the dynamic time warping. See details.}
+\item{alpha}{Numeric. The steepness of TWDTW logistic weight.}
+
+\item{beta}{Numeric. The midpoint of TWDTW logistic weight.}
+
+\item{time.window}{logical. TRUE will constrain the TWDTW computation to the 
+value of the parameter \code{beta} defined in the logistic weight function. 
+Default is FALSE.}
 
 \item{dist.method}{A character. Method to derive the local cost matrix.
 Default is ''Euclidean'' see \code{\link[proxy]{dist}} in package 
@@ -48,16 +53,26 @@ Default is ''Euclidean'' see \code{\link[proxy]{dist}} in package
 
 \item{by}{A \code{\link[base]{character}} with the interval size, \emph{e.g.} "6 month".}
 
+\item{breaks}{A vector of class \code{\link[base]{Dates}}. This replaces the arguments \code{from},
+\code{to}, and \code{by}.}
+
 \item{overlap}{A number between 0 and 1. The minimum overlapping 
 between one match and the interval of classification. Default is 0.5, 
 \emph{i.e.} an overlap minimum of 50\%.}
 
-\item{fill}{An integer to fill the classification gaps. Default 255.}
+\item{fill}{An integer to fill the classification gaps.}
+
+\item{keep}{Preserves the cost matrix, inputs, and other internal structures. 
+Default is FALSE. For plot methods use \code{keep=TRUE}.}
+
+\item{...}{Arguments to pass to \code{\link[raster]{writeRaster}} and 
+\code{\link[raster]{pbCreate}}}
 }
 \description{
-This function is a minimalist implementation of 
-\link[dtwSat]{twdtwApply} that is in average 3x faster. It does not keep any 
-intermediate data. It performs a multidimensional TWDTW analysis 
+This function is a faster implementation of 
+\link[dtwSat]{twdtwApply} that is in average 4x faster. The time weight function 
+is coded in Fortran. It does not keep any intermediate data. 
+It performs a multidimensional TWDTW analysis 
 \insertCite{Maus:2019}{dtwSat} and retrieves only the best matches between 
 the unclassified time series and the patterns for each defined time interval.
 }
@@ -65,7 +80,6 @@ the unclassified time series and the patterns for each defined time interval.
 \dontrun{
 
 library(dtwSat)
-log_fun = logisticWeight(-0.1, 50)
 from = "2009-09-01"
 to = "2017-09-01"
 by = "12 month"
@@ -74,7 +88,7 @@ by = "12 month"
 tw_patt = readRDS(system.file("lucc_MT/patterns/patt.rds", package = "dtwSat"))
 tw_ts = twdtwTimeSeries(MOD13Q1.ts) 
 
-# Table from csv for minimalist version 
+# Table from csv for faster version 
 mn_patt <- lapply(dir(system.file("lucc_MT/patterns", package = "dtwSat"), 
   pattern = ".csv$", full.names = TRUE), read.csv, stringsAsFactors = FALSE)
 mn_ts <- read.csv(system.file("reduce_time/ts_MODIS13Q1.csv", package = "dtwSat"), 
@@ -82,10 +96,9 @@ mn_ts <- read.csv(system.file("reduce_time/ts_MODIS13Q1.csv", package = "dtwSat"
 
 # Benchtmark 
 rbenchmark::benchmark(
-  original = twdtwClassify(twdtwApply(x = tw_ts, y = tw_patt, weight.fun = log_fun), 
+  legacy_twdtw = twdtwClassify(twdtwApply(x = tw_ts, y = tw_patt, weight.fun = log_fun), 
                                       from = from, to = to, by = by)[[1]],
-  minimalist = twdtwReduceTime(x = mn_ts, y = mn_patt, weight.fun = log_fun, 
-                                      from = from, to = to, by = by)  
+  fast_twdtw = twdtwReduceTime(x = mn_ts, y = mn_patt, rom = from, to = to, by = by)  
  )
 }
 

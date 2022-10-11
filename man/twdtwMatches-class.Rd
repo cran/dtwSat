@@ -63,11 +63,11 @@ Class for Time-Weighted Dynamic Time Warping results.
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{twdtwMatches}: Create object of class twdtwMatches.
+\item \code{twdtwMatches(ANY)}: Create object of class twdtwMatches.
 
-\item \code{is.twdtwMatches}: Check if the object belongs to the class twdtwMatches.
+\item \code{is.twdtwMatches(ANY)}: Check if the object belongs to the class twdtwMatches.
+
 }}
-
 \section{Slots }{
 
 \describe{
@@ -103,14 +103,15 @@ Class for Time-Weighted Dynamic Time Warping results.
 \examples{
 ts = twdtwTimeSeries(timeseries=MOD13Q1.ts.list)
 patterns = twdtwTimeSeries(timeseries=MOD13Q1.patterns.list)
-matches = twdtwApply(x = ts, y = patterns)
+matches = twdtwApply(x = ts, y = patterns, keep=TRUE, legacy=TRUE)
 class(matches)
 length(matches)
 matches 
 # Creating objects of class twdtwMatches 
 ts  = twdtwTimeSeries(MOD13Q1.ts.list)
 patt = twdtwTimeSeries(MOD13Q1.patterns.list)
-mat = twdtwApply(ts, patt, weight.fun = logisticWeight(-0.1, 100))
+mat = twdtwApply(ts, patt, weight.fun = logisticWeight(-0.1, 100), 
+                 keep=TRUE, legacy=TRUE)
 mat = twdtwMatches(ts, patterns=patt, alignments=mat)
 mat
 

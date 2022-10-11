@@ -21,7 +21,7 @@
 #' @description This function classifies the intervals of a time series 
 #' based on the TWDTW results. 
 #' 
-#' @inheritParams get
+#' @inheritParams twdtwReduceTime
 #'
 #' @param x An object of class twdtw*. This is the target time series. 
 #' Usually, it is a set of unclassified time series. 
@@ -39,6 +39,8 @@
 #' between one match and the interval of classification. Default is 0.5, 
 #' \emph{i.e.} an overlap minimum of 50\%.
 #' 
+#' @param patterns.labels a vector with labels of the patterns.
+#' 
 #' @param thresholds A numeric vector the same length as \code{patterns.labels}. 
 #' The TWDTW dissimilarity thresholds, i.e. the maximum TWDTW cost for consideration 
 #' in the classification. Default is \code{Inf} for all \code{patterns.labels}.
@@ -52,8 +54,10 @@
 #'  
 #' @param ... Arguments to pass to specific methods for each twdtw* class 
 #' and other arguments to pass to \code{\link[raster]{writeRaster}} and 
-#' \code{\link[raster]{pbCreate}}. 
-#'
+#' \code{\link[raster]{pbCreate}}. If \code{x} of 
+#' \code{\link[dtwSat]{twdtwTimeSeries-class}} additional arguments passed to 
+#' \code{\link[dtwSat]{twdtwApply}}. 
+#' 
 #' @return An object of class twdtw*.
 #' 
 #' @seealso 
@@ -71,40 +75,104 @@
 setGeneric(name = "twdtwClassify", 
           def = function(x, ...) standardGeneric("twdtwClassify"))
 
+
+#' @rdname twdtwClassify 
+#' @aliases twdtwClassify-data.frame 
+#' @example examples/test_twdtw_raster_analysis.R 
+#' @export
+setMethod(f = "twdtwClassify", "data.frame",
+          def = function(x, y, step.matrix=symmetric1, breaks=NULL, from=NULL, to=NULL, by=NULL, 
+                         overlap=0.5,fill=length(y),alpha=-0.1,beta=50,time.window=FALSE, keep=FALSE, ...){
+            twdtwReduceTime(x=x, y=y, step.matrix=step.matrix, breaks=breaks, from=from, to=to, by=by, 
+                            overlap=overlap,fill=fill,alpha=alpha,beta=beta,time.window=time.window,keep=keep, ...)
+          })
+
+#' @rdname twdtwClassify 
+#' @aliases twdtwClassify-list
+#' @example examples/test_twdtw_raster_analysis.R 
+#' @export
+setMethod(f = "twdtwClassify", "list",
+          def = function(x, y, step.matrix=symmetric1, breaks=NULL, from=NULL, to=NULL, by=NULL, 
+                         overlap=0.5,fill=length(y),alpha=-0.1,beta=50,time.window=FALSE, keep=FALSE, ...){
+            lapply(x, FUN = twdtwReduceTime, y=y, step.matrix=step.matrix, breaks=breaks, from=from, to=to, by=by, 
+                   overlap=overlap,fill=fill,alpha=alpha,beta=beta,time.window=time.window,keep=keep, ...)
+          })
+
+#' @rdname twdtwClassify
+#' @aliases twdtwClassify-twdtwTimeSeries 
+#' @example examples/test_twdtw_raster_analysis.R 
+#' @export
+setMethod("twdtwClassify", "twdtwTimeSeries",
+          function(x, patterns.labels=NULL, from=NULL, to=NULL, by=NULL, breaks=NULL,
+                overlap=.5, thresholds=Inf, fill="unclassified", ...){
+                    xm = twdtwApply(x = x, from = from, to = to, by = by, breaks = breaks, ...)
+                    if(is(xm, "twdtwMatches")){
+                      x = xm 
+                      if(is.null(patterns.labels)) patterns.labels = labels(x@patterns)
+                      if( overlap < 0 & 1 < overlap )
+                        stop("overlap out of range, it must be a number between 0 and 1")
+                      if(is.null(breaks))
+                        if( !is.null(from) &  !is.null(to) ){
+                          breaks = seq(as.Date(from), as.Date(to), by=by)    
+                        } else {
+                          # These automatic breaks needs to be improved 
+                          y = x@patterns
+                          patt_range = lapply(index(y), range)
+                          patt_diff = trunc(sapply(patt_range, diff)/30)+1
+                          min_range = which.min(patt_diff)
+                          by = patt_diff[[min_range]]
+                          cycles = c(18,12,6,4,3,2)
+                          by = cycles[which.min(abs(by-cycles))]
+                          from = patt_range[[min_range]][1]
+                          to = from 
+                          month(to) = month(to) + by
+                          dates = as.Date(unlist(index(x@timeseries)))
+                          year(from) = year(min(dates))
+                          year(to) = year(max(dates))
+                          breaks = seq(from, to, paste(by,"month"))
+                        }
+                      breaks = as.Date(breaks)
+                      twdtwClassify.twdtwMatches(x, patterns.labels=patterns.labels, breaks=breaks, 
+                                                 overlap=overlap, thresholds=thresholds, fill=fill)
+                    } else {
+                      new("twdtwMatches", timeseries=xm$x, patterns=xm$y, alignments=xm$aligs)
+                    }
+           })
+
 #' @rdname twdtwClassify
 #' @aliases twdtwClassify-twdtwTimeSeries 
 #' @example examples/test_twdtw_raster_analysis.R 
 #' @export
 setMethod("twdtwClassify", "twdtwMatches",
           function(x, patterns.labels=NULL, from=NULL, to=NULL, by=NULL, breaks=NULL,
-                overlap=.5, thresholds=Inf, fill="unclassified"){
-                    if(is.null(patterns.labels)) patterns.labels = labels(x@patterns)
-                    if( overlap < 0 & 1 < overlap )
-                      stop("overlap out of range, it must be a number between 0 and 1")
-                  if(is.null(breaks))
-                    if( !is.null(from) &  !is.null(to) ){
-                      breaks = seq(as.Date(from), as.Date(to), by=by)    
-                    } else {
-                      # These automatic breaks needs to be improved 
-                      y = x@patterns
-                      patt_range = lapply(index(y), range)
-                      patt_diff = trunc(sapply(patt_range, diff)/30)+1
-                      min_range = which.min(patt_diff)
-                      by = patt_diff[[min_range]]
-                      cycles = c(18,12,6,4,3,2)
-                      by = cycles[which.min(abs(by-cycles))]
-                      from = patt_range[[min_range]][1]
-                      to = from 
-                      month(to) = month(to) + by
-                      dates = as.Date(unlist(index(x@timeseries)))
-                      year(from) = year(min(dates))
-                      year(to) = year(max(dates))
-                      breaks = seq(from, to, paste(by,"month"))
-                    }
-                    breaks = as.Date(breaks)
-                    twdtwClassify.twdtwMatches(x, patterns.labels=patterns.labels, breaks=breaks, 
-                              overlap=overlap, thresholds=thresholds, fill=fill)
-           })
+                   overlap=.5, thresholds=Inf, fill="unclassified"){
+            if(is.null(patterns.labels)) patterns.labels = labels(x@patterns)
+            if( overlap < 0 & 1 < overlap )
+              stop("overlap out of range, it must be a number between 0 and 1")
+            if(is.null(breaks))
+              if( !is.null(from) &  !is.null(to) ){
+                breaks = seq(as.Date(from), as.Date(to), by=by)    
+              } else {
+                # These automatic breaks needs to be improved 
+                y = x@patterns
+                patt_range = lapply(index(y), range)
+                patt_diff = trunc(sapply(patt_range, diff)/30)+1
+                min_range = which.min(patt_diff)
+                by = patt_diff[[min_range]]
+                cycles = c(18,12,6,4,3,2)
+                by = cycles[which.min(abs(by-cycles))]
+                from = patt_range[[min_range]][1]
+                to = from 
+                month(to) = month(to) + by
+                dates = as.Date(unlist(index(x@timeseries)))
+                year(from) = year(min(dates))
+                year(to) = year(max(dates))
+                breaks = seq(from, to, paste(by,"month"))
+              }
+            breaks = as.Date(breaks)
+            twdtwClassify.twdtwMatches(x, patterns.labels=patterns.labels, breaks=breaks, 
+                                       overlap=overlap, thresholds=thresholds, fill=fill)
+          })
 
 #' @rdname twdtwClassify
 #' @aliases twdtwClassify-twdtwRaster 

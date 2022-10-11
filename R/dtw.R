@@ -68,8 +68,9 @@
                        AL   = as.integer(aloc))
       
       res = lapply(seq_along(paths$POS)[-1], function(p){
-        I = paths$POS[p]:((paths$POS[p-1])+1)
-        list(index1 = paths$IND1[I], index2 = paths$IND2[I])
+        I = (paths$POS[p]:((paths$POS[p-1])+1)) 
+        # -I[1] removes first row in the matrix which was created artificially
+        list(index1 = paths$IND1[I][-I[1]], index2 = paths$IND2[I][-tail(I, 1)])
       })
     }else{
       stop("Fortran tracepath lib is not loaded")
@@ -89,6 +90,7 @@
                 DP = as.integer(as.numeric(breaks)),
                 X  = as.integer(match(x[[1]]$label, levels)),
                 IM = matrix(as.integer(0), nrow = n, ncol = 3),
+                DB = as.double(x[,2]),
                 A  = as.integer(x[[1]]$Alig.N),
                 K  = as.integer(length(x)),
                 P  = as.integer(length(breaks)),
@@ -102,11 +104,12 @@
                        DP  = as.integer(as.numeric(breaks)),
                        X  = as.integer(match(x[[1]]$label, levels)),
                        IM = matrix(as.integer(0), nrow = n, ncol = 3),
+                       DB = as.double(rep(0, n)),
                        A  = as.integer(x[[1]]$Alig.N),
                        K  = as.integer(length(x[[1]]$Alig.N)),
                        P  = as.integer(length(breaks)),
                        L  = as.integer(length(levels)),
-                       OV = as.double(overlap))) 
+                       OV = as.double(overlap)))
    }
   } else {
     stop("Fortran bestmatches lib is not loaded")
@@ -119,6 +122,7 @@
       DP  = as.integer(as.numeric(breaks)),
       X  = as.integer(match(x[[1]]$label, levels)),
       IM = matrix(as.integer(0), nrow = n, ncol = 3),
+      DB = as.double(x[,2]),
       A  = as.integer(x[[1]]$Alig.N),
       K  = as.integer(length(x)),
       P  = as.integer(length(breaks)),
@@ -128,5 +132,3 @@
   } 
   res
 }
-
-

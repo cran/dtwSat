@@ -23,12 +23,10 @@ C     K  - Number of alignments
 C     P  - Number of dates defineing classification intervals 
 C     L  - Number of classes 
 C     OV - Minimum temporal overlap 
-      SUBROUTINE bestmatches(XM, AM, DM, DP, X, IM, A, K, P, L, OV)
-C  800 FORMAT('i: ',I5,'   i: ',I5,'   VALUE: ',F8.4,'   VALUE: ',F10.4)
-C  801 FORMAT('Here: ',I5)
+      SUBROUTINE bestmatches(XM,AM,DM,DP,X,IM,DB,A,K,P,L,OV)
 C     I/O Variables 
-      INTEGER K, P, L, XM(K,2), X(K), DP(P), IM(P-1,3), A(K)
-      DOUBLE PRECISION AM(P-1,L), DD, DM(K), OV
+      INTEGER K, P, L, XM(K,2), X(K), DP(P), IM(P-1,4), A(K)
+      DOUBLE PRECISION AM(P-1,L), DD, DM(K), OV, DB(P-1)
 C     Internals
       DOUBLE PRECISION R 
       INTEGER I, J, IL, B1, B2, D1, D2
@@ -37,12 +35,15 @@ C     For all time intervals
          B1 = DP(J)
          B2 = DP(J+1)
          DD = AM(J,1)
-C     For all TWDTW matches 
+         
+C     For all TWDTW matches
          DO 20 I = 1, K
+C            print *, "I: ", I
             D1 = XM(I,1)
             D2 = XM(I,2)
             IL = X(I)
             IF ((D2.LT.B1).OR.(D1.GT.B2)) THEN
+C                print *, "D1: ", D1, "D2: ", D2
                 GOTO 20 
             ENDIF
             IF (D1.LT.B1) THEN
@@ -53,17 +54,21 @@ C     For all TWDTW matches
             ENDIF
             R = REAL(D2 - D1) / REAL(B2 - B1)
             IF( .NOT.(OV.LE.R.AND.R.LE.(2-OV)) ) THEN
+C                print *, "R: ", R
                 GOTO 20 
             ENDIF
             IF( DM(I).GE.AM(J,IL) ) THEN
+C                print *, "DM(I): ", DM(I)
                 GOTO 20 
             ENDIF
             AM(J,IL) = DM(I)
             IF( DM(I).LT.DD ) THEN
+                DD = DM(I)
                 IM(J,1) = IL
                 IM(J,2) = I
                 IM(J,3) = A(I)
-                DD = DM(I)
+C                print *, "IM: ", IM
+                DB(J) = DD
             ENDIF
    20    CONTINUE
    30 CONTINUE

@@ -1,3 +1,11 @@
+# dtwSat v0.2.8
+
+* Adds faster implementation of TWDTW for logistic weight function
+
+* Fixes small bugs 
+
+* Adds vignettes 
+
 # dtwSat v0.2.7
 
 * Adds support to user defined TWDTW weight function

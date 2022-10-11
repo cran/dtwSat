@@ -34,6 +34,7 @@
 #' @import ggplot2
 #' @import methods
 #' @import rgdal 
+#' @importFrom foreach foreach %dopar% 
 #' @importFrom proxy dist pr_DB
 #' @importFrom reshape2 melt
 #' @importFrom scales pretty_breaks date_format percent
@@ -46,13 +47,14 @@
 #' @importFrom lubridate month month<- day day<- year year<-
 #' @importFrom caret createDataPartition 
 #' @importFrom xtable xtable print.xtable
-#' @importFrom utils packageDescription flush.console 
+#' @importFrom utils packageDescription flush.console globalVariables
 #' @importFrom Rdpack reprompt 
 #' @importFrom data.table rbindlist
 #' @useDynLib dtwSat, .registration = TRUE
 #' 
 NULL
 
+if(getRversion() >= "2.15.1")  utils::globalVariables("tsidopar")
 
 ### Import and export functions from other packages
 
